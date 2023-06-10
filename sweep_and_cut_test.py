@@ -1,6 +1,6 @@
 import timeit
 import numpy as np
-from point_distance import preprocessing, query
+from sweep_and_cut import sweep_and_cut, query
 
 ratios = [0.1, 0.2, 0.3, 0.4, 0.5]
 sizes = [1000, 10000, 100000, 1000000, 10000000]
@@ -12,7 +12,7 @@ space = []
 query_times = []
 
 for size in sizes:
-    boundary, hash_buckets, duration = preprocessing("synthetic_data/2d_sample_0.1_" + str(size) + ".csv", "X1", "S", 100)
+    boundary, hash_buckets, duration = sweep_and_cut("synthetic_data/2d_sample_0.1_" + str(size) + ".csv", "X1", "S", 100)
     preprocessing_time.append(duration)
     space.append(len(boundary))
     query_time = []
@@ -30,7 +30,7 @@ preprocessing_time = []
 space = []
 query_times = []
 for ratio in ratios:
-    boundary, hash_buckets, duration = preprocessing("synthetic_data/2d_sample_" + str(ratio) + "_10000.csv", "X1", "S", 100)
+    boundary, hash_buckets, duration = sweep_and_cut("synthetic_data/2d_sample_" + str(ratio) + "_10000.csv", "X1", "S", 100)
     preprocessing_time.append(duration)
     space.append(len(boundary))
     query_time = []
@@ -49,7 +49,7 @@ preprocessing_time = []
 space = []
 query_times = []
 for num_of_bucket in num_of_buckets:
-    boundary, hash_buckets, duration = preprocessing("synthetic_data/2d_sample_0.1_10000.csv", "X1", "S", num_of_bucket)
+    boundary, hash_buckets, duration = sweep_and_cut("synthetic_data/2d_sample_0.1_10000.csv", "X1", "S", num_of_bucket)
     preprocessing_time.append(duration)
     space.append(len(boundary))
     query_time = []

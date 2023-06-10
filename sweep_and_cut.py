@@ -5,7 +5,7 @@ import pandas as pd
 from bisect import bisect
 
 
-def preprocessing(path, column, sens_attr, num_of_buckets):
+def sweep_and_cut(path, column, sens_attr, num_of_buckets):
     df = pd.read_csv(path)
     start = timeit.default_timer()
     df = df.sort_values(column)
