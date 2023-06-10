@@ -1,16 +1,22 @@
 import itertools
 import timeit
-
+from bisect import bisect
 import numpy as np
 import pandas as pd
 
 
-def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_buckets):
-    df = pd.read_csv(path)
+def necklace_split(path, col, sens_attr, num_of_buckets, ranking=None):
+    if ranking is not None:
+        df = pd.read_csv(path)
+        G = [list(df[sens_attr].values)[i] for i in ranking]
+        T = [list(df[col].values)[i] for i in ranking]
+    else:
+        df = pd.read_csv(path).sample(frac=1.0)
+        G = list(df[sens_attr].values)
+        T = list(df[col].values)
     start = timeit.default_timer()
-    G = [list(df[sens_attr].values)[i] for i in ranking]
-    T = [list(df[col].values)[i] for i in ranking]
     size = df.shape[0]
+    sens_attr_values = np.unique(G)
     c_F_total = G.count(sens_attr_values[0])
     c_M_total = G.count(sens_attr_values[1])
     n = len(G)
@@ -19,7 +25,6 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
     hash_buckets = []
     boundary = []
     offset = 0
-    ordering = []
     for j in range(num_of_buckets):
         if offset + arc_size <= n:
             c_F_ = G[offset: arc_size + offset].count(sens_attr_values[0])
@@ -99,7 +104,6 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
                 hash_buckets.extend([j, j])
             # if i + offset == offset:
             #     print(c_F_, c_M_, G[i + offset: i + offset + arc_size], indices[i + offset: i + offset + arc_size])
-            ordering.append(G[i + offset: i + offset + arc_size])
             del G[i + offset: i + offset + arc_size]
             del indices[i + offset: i + offset + arc_size]
             if n != 0:
@@ -113,10 +117,8 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
                 # if i + offset == offset:
                 #     print(c_F_, c_M_, G[i + offset: n] + G[:(i + offset + arc_size) % n],
                 #           indices[i + offset: n] + indices[:(i + offset + arc_size) % n])
-                ordering.append(G[i + offset: n] + G[:(i + offset + arc_size) % n])
                 del G[i + offset: n], G[:(i + offset + arc_size) % n]
                 del indices[i + offset: n], indices[:(i + offset + arc_size) % n]
-
                 offset = 0
             else:
                 if (i + offset) % n < (i + offset + arc_size) % n:
@@ -127,7 +129,6 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
                     # if i + offset == offset:
                     #     print(c_F_, c_M_, G[(i + offset) % n:(i + offset + arc_size) % n],
                     #           indices[(i + offset) % n:(i + offset + arc_size) % n])
-                    ordering.append(G[(i + offset) % n:(i + offset + arc_size) % n])
                     del G[(i + offset) % n:(i + offset + arc_size) % n]
                     del indices[(i + offset) % n:(i + offset + arc_size) % n]
                     offset = (i + offset) % n
@@ -139,7 +140,6 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
                     # if i + offset == offset:
                     #     print(c_F_, c_M_, G[(i + offset) % n:n], G[:(i + offset + arc_size) % n],
                     #           indices[(i + offset) % n:n] + indices[:(i + offset + arc_size) % n])
-                    ordering.append(G[(i + offset) % n:n] + G[:(i + offset + arc_size) % n])
                     del G[(i + offset) % n:n], G[:(i + offset + arc_size) % n]
                     del indices[(i + offset) % n:n], indices[:(i + offset + arc_size) % n]
                     offset = (i + offset) % n
@@ -148,52 +148,11 @@ def necklace_split(path, ranking, col, sens_attr, sens_attr_values, num_of_bucke
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     stop = timeit.default_timer()
-    return stop - start, \
-        [T[val] for val in np.unique(sorted(boundary), return_index=True)[0]], \
-        [hash_buckets[idx] for idx in np.unique(sorted(boundary), return_index=True)[1]], \
-        ordering, np.unique(sorted(boundary))
+    return np.unique(sorted(boundary)), [T[val] for val in np.unique(sorted(boundary), return_index=True)[0]], \
+        [hash_buckets[idx] for idx in np.unique(sorted(boundary), return_index=True)[1]], stop - start
 
-# path = "data/2d_sample_0.2_100.csv"
-# number_of_buckets = 10
-# rankings, all_possible_ratios, _, fair_ranking, _ = find_fair_ranking(path, "S", ["F", "M"], number_of_buckets)
-# number_of_cuts = []
-# orderings = []
-# for i in range(len(rankings)):
-#     # print(i, "of", len(rankings))
-#     _, boundary, _, ordering = necklace_split(path, rankings[i], "X1", "S", ["F", "M"], number_of_buckets)
-#     number_of_cuts.append(len(boundary))
-#     orderings.append(ordering)
-#
-# df = pd.read_csv(path)
-# n = df.shape[0]
-# bucket_length = n // number_of_buckets
-# sorted_list_of_cuts = sorted(number_of_cuts)
-# sorted_list_of_cuts_indices = np.argsort(number_of_cuts)
-#
-# for idx in range(20):
-#     print("number of cuts:", sorted_list_of_cuts[idx], "index:", sorted_list_of_cuts_indices[idx])
-#     G = [list(df["S"].values)[i] for i in rankings[sorted_list_of_cuts_indices[idx]]]
-#     print("Original ranking:", [G[bucket_length * i:bucket_length * (i + 1)] for i in range(number_of_buckets)])
-#     print("Original ranking counts:", [[G[bucket_length * i:bucket_length * (i + 1)].count('F'),
-#                                         G[bucket_length * i:bucket_length * (i + 1)].count('M')] for i in
-#                                        range(number_of_buckets)])
-#     print("Ordering after necklace:", orderings[sorted_list_of_cuts_indices[idx]])
-#     print("Ordering after necklace counts:",
-#           [[bucket.count('F'), bucket.count('M')] for bucket in orderings[sorted_list_of_cuts_indices[idx]]])
-#     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-#
-# print("=========================================================================")
-# G = [list(df["S"].values)[i] for i in fair_ranking]
-#
-# _, boundary, _, ordering = necklace_split(path, fair_ranking, "X1", "S", ["F", "M"], number_of_buckets)
-# print("Fairest ranking after necklace:", ordering)
-# print("Fairest ranking after necklace counts:",
-#       [[bucket.count('F'), bucket.count('M')] for bucket in ordering])
-# print("number of cuts:", len(boundary))
-#
-# print("Original fairest ranking:", [G[bucket_length * i:bucket_length * (i + 1)] for i in range(number_of_buckets)])
-# print("Original fairest ranking counts:", [[G[bucket_length * i:bucket_length * (i + 1)].count('F'),
-#                                             G[bucket_length * i:bucket_length * (i + 1)].count('M')] for i in
-#                                            range(number_of_buckets)])
 
-# At this point, not sure about the ranking code.
+def query(q, boundary, hash_buckets):
+    return hash_buckets[bisect(boundary, q)]
+
+

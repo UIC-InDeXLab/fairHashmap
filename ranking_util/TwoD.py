@@ -1,7 +1,7 @@
 import math
 from heapq import *
 
-from ranking import basestuff
+from ranking_2d import basestuff
 
 n = basestuff.n
 Lp = None  # Lp contains the current ranking
@@ -19,7 +19,7 @@ def GetNext():  # Updates the ranking to the next one
         if Lp is None:  # initialization
             _init_()
         _firstranking = False
-        return Lp, -1  # negative one means that this is the first ranking and no rank-swap has yet happened
+        return Lp, -1, 0  # negative one means that this is the first ranking and no rank-swap has yet happened
     if len(sweeper) > 0:
         (theta, i) = heappop(sweeper)
         j = L[i]  # the index of t[i] in the ordered list Lp
@@ -32,8 +32,8 @@ def GetNext():  # Updates the ranking to the next one
             checkNadd(Lp[j - 1], Lp[j], Ui)
         if j + 2 < basestuff.n:
             checkNadd(Lp[j + 1], Lp[j + 2], Ui)
-        return Lp, j  # the index on which the rank-swap happened
-    return None, None  # no more rankings
+        return Lp, j, theta  # the index on which the rank-swap happened
+    return None, None, None  # no more rankings
 
 
 def checkNadd(i, j, Ui):  # check if i and j swap rank later, and if so, add the swap angle to the heap
@@ -53,8 +53,7 @@ def _init_(_Ui=None):
     discoveredAngles = set()
     sweeper = []  # the sweeper heap (priority queue)
     Lp = list(basestuff.rank([Ui[0]], isweight=False))  # Lp contains the ranking
-    L = [0 for i in
-         range(basestuff.n)]  # the reverse list that for every tuple i, returns its rank in the current ranking
+    L = [0 for i in range(basestuff.n)]  # the reverse list that for every tuple i, returns its rank in the current ranking
     for i in range(basestuff.n):
         L[Lp[i]] = i
     for i in range(basestuff.n - 1):

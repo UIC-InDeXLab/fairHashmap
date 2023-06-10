@@ -1,19 +1,26 @@
 import math
 import pandas as pd
 
-n = None  # database size
-d = None  # number of attributes (|D|)
-D = None
-dataset = None  # type numpy:ndarray; original set of points (all tuples)
+n = None
+d = None
+dataset = None
 
 
 def read_file(file, columns):
-    global dataset, n, d, D
+    global dataset, n, d
     dataset = pd.read_csv(file)
     n = dataset.shape[0]
     d = 2
-    D = [i for i in range(d)]
     dataset = dataset[[col for col in columns]]
+    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
+    dataset = dataset.to_numpy()
+
+
+def read_df(dataframe, columns):
+    global dataset, n, d
+    dataset = dataframe[[col for col in columns]]
+    n = dataset.shape[0]
+    d = 2
     dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
     dataset = dataset.to_numpy()
 
