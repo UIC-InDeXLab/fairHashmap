@@ -6,12 +6,11 @@ import pandas as pd
 
 
 def necklace_split(path, col, sens_attr, num_of_buckets, ranking=None):
+    df = pd.read_csv(path)
     if ranking is not None:
-        df = pd.read_csv(path)
         G = [list(df[sens_attr].values)[i] for i in ranking]
         T = [list(df[col].values)[i] for i in ranking]
     else:
-        df = pd.read_csv(path).sample(frac=1.0)
         G = list(df[sens_attr].values)
         T = list(df[col].values)
     start = timeit.default_timer()

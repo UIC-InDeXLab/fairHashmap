@@ -1,7 +1,7 @@
 import math
 from heapq import *
 
-from ranking_2d import basestuff
+from ranking_util import basestuff
 
 n = basestuff.n
 Lp = None  # Lp contains the current ranking

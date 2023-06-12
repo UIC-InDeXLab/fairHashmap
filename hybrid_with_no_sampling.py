@@ -10,19 +10,25 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
     basestuff.read_file(file=path, columns=columns)
     number_of_cuts = []
     boundary_indices = []
+    boundaries = []
+    hash_buckets = []
     for i in range(n * n):
-        r, j = TwoD.GetNext()
+        r, j, theta = TwoD.GetNext()
         if r is not None and j != -1:
             idx1 = r[j]
             idx2 = r[j + 1]
             if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
-                boundary_indices, _, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
-                number_of_cuts.append(len(boundary_indices))
+                F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
+                boundary_indices = F[0]
+                boundaries.append(F[1])
+                hash_buckets.append((F[2]))
+                number_of_cuts.append(len(F[1]))
         elif r is not None and j == -1:
-            boundary_indices, _, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
+            F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
+            boundary_indices = F[0]
+            boundaries.append(F[1])
+            hash_buckets.append((F[2]))
+            number_of_cuts.append(len(F[1]))
         else:
             break
-    return np.min(number_of_cuts)
-
-
-
+    return number_of_cuts[np.min(number_of_cuts)], boundaries[np.min(number_of_cuts)], hash_buckets[np.min(number_of_cuts)]
