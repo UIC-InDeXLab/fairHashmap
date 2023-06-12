@@ -10,8 +10,8 @@ for i in range(100):
 
 path = "synthetic_data/2d_sample_0.2_100.csv"
 number_of_buckets = 10
-num_of_cuts, boundary, hash_buckets = hybrid_with_no_sampling(path, "S", ["X1", "X2"], number_of_buckets)
-print(queries[0][0])
+num_of_cuts, boundary, hash_buckets, theta = hybrid_with_no_sampling(path, "S", ["X1", "X2"], number_of_buckets)
+print(queries[0])
 print(boundary)
 print(hash_buckets)
-print(query(queries[0][0], boundary, hash_buckets))
+print(query(queries[0], boundary, hash_buckets, [theta]))

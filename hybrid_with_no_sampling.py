@@ -12,23 +12,27 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
     boundary_indices = []
     boundaries = []
     hash_buckets = []
+    Theta = []
     for i in range(n * n):
         r, j, theta = TwoD.GetNext()
         if r is not None and j != -1:
             idx1 = r[j]
             idx2 = r[j + 1]
             if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
-                F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
+                F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r, theta)
                 boundary_indices = F[0]
                 boundaries.append(F[1])
                 hash_buckets.append((F[2]))
                 number_of_cuts.append(len(F[1]))
+                Theta.append(theta)
         elif r is not None and j == -1:
-            F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r)
+            F = necklace_split(path, columns[0], sens_attr, number_of_buckets, r, theta)
             boundary_indices = F[0]
             boundaries.append(F[1])
             hash_buckets.append((F[2]))
             number_of_cuts.append(len(F[1]))
+            Theta.append(theta)
         else:
             break
-    return number_of_cuts[np.min(number_of_cuts)], boundaries[np.min(number_of_cuts)], hash_buckets[np.min(number_of_cuts)]
+    return number_of_cuts[np.min(number_of_cuts)], boundaries[np.min(number_of_cuts)], hash_buckets[
+        np.min(number_of_cuts)], Theta[np.min(number_of_cuts)]

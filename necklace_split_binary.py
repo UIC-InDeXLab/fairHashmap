@@ -3,15 +3,20 @@ import timeit
 from bisect import bisect
 import numpy as np
 import pandas as pd
+from utils import polartoscalar, score
 
 
-def necklace_split(path, col, sens_attr, num_of_buckets, ranking=None):
+def necklace_split(path, col, sens_attr_col, num_of_buckets, ranking=None, theta=None, d=2):
     df = pd.read_csv(path)
     if ranking is not None:
-        G = [list(df[sens_attr].values)[i] for i in ranking]
-        T = [list(df[col].values)[i] for i in ranking]
+        G = [list(df[sens_attr_col].values)[i] for i in ranking]
+        G.reverse()
+        f = polartoscalar([theta], d)
+        T = [list(df[col].values)[i] * f[0] + list(df["X2"].values)[i] * f[1] for i in ranking]
+        T.reverse()
     else:
-        G = list(df[sens_attr].values)
+        df = df.sort_values(col)
+        G = list(df[sens_attr_col].values)
         T = list(df[col].values)
     start = timeit.default_timer()
     size = df.shape[0]
@@ -151,7 +156,9 @@ def necklace_split(path, col, sens_attr, num_of_buckets, ranking=None):
         [hash_buckets[idx] for idx in np.unique(sorted(boundary), return_index=True)[1]], stop - start
 
 
-def query(q, boundary, hash_buckets):
+def query(q, boundary, hash_buckets, theta=None, d=2):
+    if theta is not None:
+        f = polartoscalar(theta, d)
+        q = f[0] * q[0] + f[1] * q[1]
+        print(q)
     return hash_buckets[bisect(boundary, q)]
-
-

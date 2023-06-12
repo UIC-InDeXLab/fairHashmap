@@ -17,13 +17,13 @@ def generate_2D_data(file_name, n, minority_count):
     df.to_csv("synthetic_data/" + file_name)
 
 
-def score(dataset, f, d):
+def score(t, f, d):
     c = 0
     if len(f) != d:
         print('Error: Function length should be equal to d')
         return
     for j in range(d):
-        c += f[j] * dataset[j]
+        c += f[j] * t[j]
     return c
 
 
