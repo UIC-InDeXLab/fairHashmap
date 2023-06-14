@@ -1,3 +1,5 @@
+import timeit
+
 import numpy as np
 import pandas as pd
 from ranking_util import basestuff, TwoD
@@ -13,6 +15,7 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
     boundaries = []
     hash_buckets = []
     Theta = []
+    start = timeit.default_timer()
     for i in range(n * n):
         r, j, theta = TwoD.GetNext()
         if r is not None and j != -1:
@@ -34,5 +37,6 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
             Theta.append(theta)
         else:
             break
+    stop = timeit.default_timer()
     return number_of_cuts[np.min(number_of_cuts)], boundaries[np.min(number_of_cuts)], hash_buckets[
-        np.min(number_of_cuts)], Theta[np.min(number_of_cuts)]
+        np.min(number_of_cuts)], Theta[np.min(number_of_cuts)], stop-start

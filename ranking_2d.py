@@ -5,8 +5,8 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from scipy.special import comb
+
 from ranking_util import basestuff, TwoD
-from utils import polartoscalar, score
 
 
 def get_all_rankings(path, columns):
@@ -47,17 +47,17 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
             bucket_distribution.append([bucket.count(sens_attr) / bucket_size for sens_attr in sens_attr_values])
             for val in sens_attr_values:
                 if val in collision_count.keys():
-                    collision_count[val] += comb(bucket.count(val), len(sens_attr_values))
+                    collision_count[val] += comb(bucket.count(val), 2)
                 else:
-                    collision_count[val] = comb(bucket.count(val), len(sens_attr_values))
+                    collision_count[val] = comb(bucket.count(val), 2)
 
         for val in sens_attr_values:
             if val in collision_prob.keys():
                 collision_prob[val].append(
-                    collision_count[val] / comb(G.count(val), len(sens_attr_values)))
+                    collision_count[val] / comb(G.count(val), 2))
             else:
                 collision_prob[val] = [
-                    collision_count[val] / comb(G.count(val), len(sens_attr_values))]
+                    collision_count[val] / comb(G.count(val), 2)]
 
         distributions.append(bucket_distribution)
 

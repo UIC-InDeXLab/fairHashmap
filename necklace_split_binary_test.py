@@ -49,7 +49,7 @@ preprocessing_time = []
 space = []
 query_times = []
 for num_of_bucket in num_of_buckets:
-    path = "synthetic_data/2d_sample_0.1_10000.csv"
+    path = "synthetic_data/2d_sample_0.1_1000000.csv"
     _, boundary, hash_buckets, duration = necklace_split(path, "X1", "S", num_of_bucket)
     preprocessing_time.append(duration)
     space.append(len(boundary))

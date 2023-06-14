@@ -70,7 +70,7 @@ def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr):
         R_1.append(r)
         R_2.append(projection)
         Theta.append(theta)
-        _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection)
+        _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
         number_of_cuts.append(len(boundary))
 
     F_1 = find_fair_ranking(path, R_1, sens_attr, number_of_buckets)

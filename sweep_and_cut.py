@@ -39,6 +39,8 @@ def sweep_and_cut(path, column, sens_attr, num_of_buckets):
 
 
 def query(q, boundary, hash_buckets):
-    return hash_buckets[bisect(boundary, q)]
-
-
+    idx = bisect(boundary, q)
+    if idx == len(hash_buckets):
+        return hash_buckets[-1]
+    else:
+        return hash_buckets[idx]

@@ -160,5 +160,8 @@ def query(q, boundary, hash_buckets, theta=None, d=2):
     if theta is not None:
         f = polartoscalar(theta, d)
         q = f[0] * q[0] + f[1] * q[1]
-        print(q)
-    return hash_buckets[bisect(boundary, q)]
+    idx = bisect(boundary, q)
+    if idx == len(hash_buckets):
+        return hash_buckets[-1]
+    else:
+        return hash_buckets[idx]
