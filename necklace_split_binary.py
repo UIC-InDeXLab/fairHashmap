@@ -1,23 +1,25 @@
 import itertools
 import timeit
 from bisect import bisect
+
 import numpy as np
 import pandas as pd
-from utils import polartoscalar, score
+
+from utils import polartoscalar
 
 
-def necklace_split(path, col, sens_attr_col, num_of_buckets, ranking=None, theta=None, d=2):
+def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, theta=None, d=2):
     df = pd.read_csv(path)
     if ranking is not None:
         G = [list(df[sens_attr_col].values)[i] for i in ranking]
         G.reverse()
         f = polartoscalar([theta], d)
-        T = [list(df[col].values)[i] * f[0] + list(df["X2"].values)[i] * f[1] for i in ranking]
+        T = [list(df[columns[0]].values)[i] * f[0] + list(df[columns[1]].values)[i] * f[1] for i in ranking]
         T.reverse()
     else:
-        df = df.sort_values(col)
+        df = df.sort_values(columns[0])
         G = list(df[sens_attr_col].values)
-        T = list(df[col].values)
+        T = list(df[columns[0]].values)
     start = timeit.default_timer()
     size = df.shape[0]
     sens_attr_values = np.unique(G)

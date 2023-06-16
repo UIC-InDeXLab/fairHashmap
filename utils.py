@@ -1,5 +1,7 @@
 import math
 import random
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -15,6 +17,29 @@ def generate_2D_data(file_name, n, minority_count):
     random.shuffle(s)
     df["S"] = s
     df.to_csv("synthetic_data/" + file_name)
+
+
+def generate_sample_of_size(path, dataset, n):
+    df = pd.read_csv(path).sample(n)
+    Path("real_data/" + dataset).mkdir(parents=True, exist_ok=True)
+    df.to_csv("real_data/" + dataset + "/" + dataset + "_n_" + n + ".csv", index=False)
+
+
+def generate_sample_of_fraction(path, dataset, f):
+    df = pd.read_csv(path).sample(frac=f)
+    Path("real_data/" + dataset).mkdir(parents=True, exist_ok=True)
+    df.to_csv("real_data/" + dataset + "/" + dataset + "_f_" + str(f) + ".csv", index=False)
+
+
+def generate_sample_of_ratio(path, dataset, minority, majority, sens_attr):
+    df = pd.read_csv(path)
+    df_female = df[df[sens_attr] == "Female"].sample(minority)
+    df_male = df[df[sens_attr] == "Male"].sample(majority)
+    df_merged = pd.concat([df_male, df_female], ignore_index=True)
+    Path("real_data/" + dataset).mkdir(parents=True, exist_ok=True)
+    df_merged.to_csv(
+        "real_data/" + dataset + "/" + dataset + "_r_" + str(float("{:.2f}".format((minority / majority)))) + ".csv",
+        index=False)
 
 
 def score(t, f, d):
