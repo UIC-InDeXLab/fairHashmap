@@ -128,7 +128,8 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
                 offset = 0
             else:
                 if (i + offset) % n < (i + offset + arc_size) % n:
-                    if (i + offset) % n != 0 and (i + offset) % n != size:
+                    if (i + offset) % n > 0 and (
+                            i + offset) % n != size:  # used to be !=0 changed it to >0, check if ok
                         boundary.append(indices[(i + offset) % n])
                         boundary.append(indices[(i + offset + arc_size) % n])
                         hash_buckets.extend([j, j])
@@ -139,7 +140,7 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
                     del indices[(i + offset) % n:(i + offset + arc_size) % n]
                     offset = (i + offset) % n
                 else:
-                    if (i + offset) % n != 0 and (i + offset) % n != size:
+                    if (i + offset) % n > 0 and (i + offset) % n != size:
                         boundary.append(indices[(i + offset) % n])
                         boundary.append(indices[(i + offset + arc_size) % n])
                         hash_buckets.extend([j, j])

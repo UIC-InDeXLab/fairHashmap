@@ -8,8 +8,8 @@ from bisect import bisect
 def sweep_and_cut(path, column, sens_attr, num_of_buckets):
     df = pd.read_csv(path)
     start = timeit.default_timer()
-    df = df.sort_values(column)
-    t = df[column].values
+    df = df.sort_values(column[0])
+    t = df[column[0]].values
     G = df[sens_attr].values
     G_unique, G_count = np.unique(df[sens_attr].values, return_counts=True)
     n = df.shape[0]

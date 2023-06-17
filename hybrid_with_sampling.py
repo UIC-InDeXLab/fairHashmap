@@ -1,4 +1,5 @@
 import math
+import timeit
 from collections import Counter
 
 import numpy as np
@@ -50,43 +51,44 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
     return min(disparity), distributions[disparity.index(min(disparity))], disparity.index(min(disparity))
 
 
-def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr):
+def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr, flag):
     n = sample.shape[0]
     basestuff.read_df(sample, columns)
-
     dataset = pd.read_csv(path)
     dataset = dataset[[col for col in columns]]
     dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
     dataset = dataset.to_numpy()
-    R_1 = []
-    R_2 = []
+    R = []
     Theta = []
     number_of_cuts = []
+    start = timeit.default_timer()
+    TwoD.initialize()
     for i in range(n * n):
-        r, _, theta = TwoD.GetNext()  # vector and boundary based on sample
+        r, _, theta = TwoD.GetNext()
         if r is None:
             break
-        projection = rank(dataset, [theta], len(columns))  # vector based on sample boundary based on original input
-        R_1.append(r)
-        R_2.append(projection)
         Theta.append(theta)
-        _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
-        number_of_cuts.append(len(boundary))
+        if not flag:  # vector and boundary based on sample
+            R.append(r)
+        else:  # vector based on sample boundary based on original input
+            projection = rank(dataset, [theta], len(columns))
+            R.append(projection)
+            _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
+            number_of_cuts.append(len(boundary))
+    stop = timeit.default_timer()
+    F = find_fair_ranking(path, R, sens_attr, number_of_buckets)
+    print("Fairness:", F[0], F[1], R[F[2]])
+    if flag:
+        print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
+    return Theta[F[2]], stop - start
 
-    F_1 = find_fair_ranking(path, R_1, sens_attr, number_of_buckets)
-    F_2 = find_fair_ranking(path, R_2, sens_attr, number_of_buckets)
-    print("Vector and boundary based on sample:", F_1[0], F_1[1], R_1[F_1[2]])
-    print("Vector based on sample, boundary based on original input:", F_2[0], F_2[1], R_2[F_1[2]])
-    print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
-    return Theta[F_1[2]], Theta[F_2[2]]
 
-
-def generate_sample(path, number_of_dimensions, number_of_buckets, sens_attr):
+def generate_sample(path, d, number_of_buckets, sens_attr):
     df = pd.read_csv(path)
     sens_attr_values = np.unique(list(df[sens_attr].values))
     n = df.shape[0]
     merge = []
     for val in sens_attr_values:
-        merge.append(df[df[sens_attr] == val].sample(
-            int(np.ceil(12 * number_of_buckets * number_of_dimensions * math.log(n) / 50))))
+        sample_size = int(np.ceil(12 * number_of_buckets * d * math.log(n) / 50))
+        merge.append(df[df[sens_attr] == val].sample(sample_size))
     return pd.concat(merge, axis=0).sample(frac=1.0).reset_index()

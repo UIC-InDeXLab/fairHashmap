@@ -1,6 +1,5 @@
 import math
 from heapq import *
-
 from ranking_util import basestuff
 
 n = basestuff.n
@@ -9,16 +8,27 @@ L = None  # the reverse list that for every tuple i, returns its rank in the cur
 sweeper = None  # the sweeper heap (priority queue)
 discoveredAngles = None
 Ui = None
-_firstranking = True  # a temp variable
+is_first = True  # a temp variable
+
+
+def initialize():
+    global n, sweeper, Lp, L, is_first, discoveredAngles, Ui
+    n = basestuff.n
+    Lp = None  # Lp contains the current ranking
+    L = None  # the reverse list that for every tuple i, returns its rank in the current ranking
+    sweeper = None  # the sweeper heap (priority queue)
+    discoveredAngles = None
+    Ui = None
+    is_first = True  # a temp variable
 
 
 def GetNext():  # Updates the ranking to the next one
     # outputs the swap index (J) in the current ranking
-    global n, sweeper, Lp, L, _firstranking
-    if _firstranking:
+    global n, sweeper, Lp, L, is_first
+    if is_first:
         if Lp is None:  # initialization
-            _init_()
-        _firstranking = False
+            run_first()
+        is_first = False
         return Lp, -1, 0  # negative one means that this is the first ranking and no rank-swap has yet happened
     if len(sweeper) > 0:
         (theta, i) = heappop(sweeper)
@@ -47,13 +57,14 @@ def checkNadd(i, j, Ui):  # check if i and j swap rank later, and if so, add the
                 discoveredAngles.add(theta)
 
 
-def _init_(_Ui=None):
+def run_first(_Ui=None):
     global n, sweeper, discoveredAngles, Lp, L, Ui
     Ui = [0, math.pi / 2] if _Ui is None else _Ui
     discoveredAngles = set()
     sweeper = []  # the sweeper heap (priority queue)
     Lp = list(basestuff.rank([Ui[0]], isweight=False))  # Lp contains the ranking
-    L = [0 for i in range(basestuff.n)]  # the reverse list that for every tuple i, returns its rank in the current ranking
+    L = [0 for i in
+         range(basestuff.n)]  # the reverse list that for every tuple i, returns its rank in the current ranking
     for i in range(basestuff.n):
         L[Lp[i]] = i
     for i in range(basestuff.n - 1):

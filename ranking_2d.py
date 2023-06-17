@@ -12,6 +12,7 @@ from ranking_util import basestuff, TwoD
 def get_all_rankings(path, columns):
     n = pd.read_csv(path).shape[0]
     basestuff.read_file(file=path, columns=columns)
+    TwoD.initialize()
     R = []
     Theta = []
     for i in range(n * n):
