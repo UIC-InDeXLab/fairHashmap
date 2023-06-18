@@ -8,8 +8,8 @@ from utils import read_file, polartoscalar, score
 
 queries = []
 for i in range(100):
-    query_x = np.random.uniform(0, 1)
-    query_y = np.random.uniform(0, 1)
+    query_x = np.random.uniform(0, 500000)
+    query_y = np.random.uniform(0, 16)
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
