@@ -7,7 +7,14 @@ minority = [[4000, 8000, 12000, 16000], [3000, 6000, 9000, 12000]]
 majority = [16000, 12000]
 for idx in range(len(datasets)):
     for min_val in minority[idx]:
-        generate_sample_of_ratio("real_data/" + datasets[idx] + ".csv", datasets[idx], min_val, majority[idx],
-                                 sens_attr[idx])
+        generate_sample_of_ratio(
+            "real_data/" + datasets[idx] + ".csv",
+            datasets[idx],
+            min_val,
+            majority[idx],
+            sens_attr[idx],
+        )
     for frac in fractions:
-        generate_sample_of_fraction("real_data/" + datasets[idx] + ".csv", datasets[idx], frac)
+        generate_sample_of_fraction(
+            "real_data/" + datasets[idx] + ".csv", datasets[idx], frac
+        )

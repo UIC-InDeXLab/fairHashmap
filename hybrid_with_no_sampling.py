@@ -10,6 +10,7 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
     G = list(pd.read_csv(path)[sens_attr].values)
     n = len(G)
     basestuff.read_file(file=path, columns=columns)
+    TwoD.initialize()
     number_of_cuts = []
     boundary_indices = []
     boundaries = []
@@ -22,7 +23,9 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
             idx1 = r[j]
             idx2 = r[j + 1]
             if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
-                F = necklace_split(path, columns, sens_attr, number_of_buckets, r, theta)
+                F = necklace_split(
+                    path, columns, sens_attr, number_of_buckets, r, theta
+                )
                 boundary_indices = F[0]
                 boundaries.append(F[1])
                 hash_buckets.append((F[2]))
@@ -38,5 +41,10 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
         else:
             break
     stop = timeit.default_timer()
-    return number_of_cuts[np.min(number_of_cuts)], boundaries[np.min(number_of_cuts)], hash_buckets[
-        np.min(number_of_cuts)], Theta[np.min(number_of_cuts)], stop-start
+    return (
+        number_of_cuts[np.argmin(number_of_cuts)],
+        boundaries[np.argmin(number_of_cuts)],
+        hash_buckets[np.argmin(number_of_cuts)],
+        Theta[np.argmin(number_of_cuts)],
+        stop - start,
+    )

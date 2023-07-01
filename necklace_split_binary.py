@@ -8,13 +8,19 @@ import pandas as pd
 from utils import polartoscalar
 
 
-def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, theta=None, d=2):
+def necklace_split(
+    path, columns, sens_attr_col, num_of_buckets, ranking=None, theta=None, d=2
+):
     df = pd.read_csv(path)
     if ranking is not None:
         G = [list(df[sens_attr_col].values)[i] for i in ranking]
         G.reverse()
         f = polartoscalar([theta], d)
-        T = [list(df[columns[0]].values)[i] * f[0] + list(df[columns[1]].values)[i] * f[1] for i in ranking]
+        T = [
+            list(df[columns[0]].values)[i] * f[0]
+            + list(df[columns[1]].values)[i] * f[1]
+            for i in ranking
+        ]
         T.reverse()
     else:
         df = df.sort_values(columns[0])
@@ -33,21 +39,31 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
     offset = 0
     for j in range(num_of_buckets):
         if offset + arc_size <= n:
-            c_F_ = G[offset: arc_size + offset].count(sens_attr_values[0])
-            c_M_ = G[offset: arc_size + offset].count(sens_attr_values[1])
+            c_F_ = G[offset : arc_size + offset].count(sens_attr_values[0])
+            c_M_ = G[offset : arc_size + offset].count(sens_attr_values[1])
         else:
             if offset <= n:
-                c_F_ = list(itertools.chain(G[offset:n], G[:(offset + arc_size) % n])).count(sens_attr_values[0])
-                c_M_ = list(itertools.chain(G[offset:n], G[:(offset + arc_size) % n])).count(sens_attr_values[1])
+                c_F_ = list(
+                    itertools.chain(G[offset:n], G[: (offset + arc_size) % n])
+                ).count(sens_attr_values[0])
+                c_M_ = list(
+                    itertools.chain(G[offset:n], G[: (offset + arc_size) % n])
+                ).count(sens_attr_values[1])
             else:
                 if offset % n <= (offset + arc_size) % n:
-                    c_F_ = G[offset % n:(offset + arc_size) % n].count(sens_attr_values[0])
-                    c_M_ = G[offset % n:(offset + arc_size) % n].count(sens_attr_values[1])
+                    c_F_ = G[offset % n : (offset + arc_size) % n].count(
+                        sens_attr_values[0]
+                    )
+                    c_M_ = G[offset % n : (offset + arc_size) % n].count(
+                        sens_attr_values[1]
+                    )
                 else:
-                    c_F_ = list(itertools.chain(G[offset % n:n], G[:(offset + arc_size) % n])).count(
-                        sens_attr_values[0])
-                    c_M_ = list(itertools.chain(G[offset % n:n], G[:(offset + arc_size) % n])).count(
-                        sens_attr_values[1])
+                    c_F_ = list(
+                        itertools.chain(G[offset % n : n], G[: (offset + arc_size) % n])
+                    ).count(sens_attr_values[0])
+                    c_M_ = list(
+                        itertools.chain(G[offset % n : n], G[: (offset + arc_size) % n])
+                    ).count(sens_attr_values[1])
 
         # print('starting counts:', c_F_, c_M_)
         # print('G', G)
@@ -55,53 +71,78 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
         for i in range(n):
             if i + offset != offset:
                 if i + offset + arc_size <= n:
-                    if G[i + offset - 1] == sens_attr_values[0] and G[i + offset + arc_size - 1] == sens_attr_values[1]:
+                    if (
+                        G[i + offset - 1] == sens_attr_values[0]
+                        and G[i + offset + arc_size - 1] == sens_attr_values[1]
+                    ):
                         c_F_ -= 1
                         c_M_ += 1
-                    if G[i + offset - 1] == sens_attr_values[1] and G[i + offset + arc_size - 1] == sens_attr_values[0]:
+                    if (
+                        G[i + offset - 1] == sens_attr_values[1]
+                        and G[i + offset + arc_size - 1] == sens_attr_values[0]
+                    ):
                         c_F_ += 1
                         c_M_ -= 1
                     # print(c_F_, c_M_, G[i + offset:i + offset + arc_size], indices[i + offset:i + offset + arc_size])
                 else:
                     if i + offset <= n:
-                        if G[i + offset - 1] == sens_attr_values[0] and G[(i + offset + arc_size) % n - 1] == \
-                                sens_attr_values[1]:
+                        if (
+                            G[i + offset - 1] == sens_attr_values[0]
+                            and G[(i + offset + arc_size) % n - 1]
+                            == sens_attr_values[1]
+                        ):
                             c_F_ -= 1
                             c_M_ += 1
-                        if G[i + offset - 1] == sens_attr_values[1] and G[(i + offset + arc_size) % n - 1] == \
-                                sens_attr_values[0]:
+                        if (
+                            G[i + offset - 1] == sens_attr_values[1]
+                            and G[(i + offset + arc_size) % n - 1]
+                            == sens_attr_values[0]
+                        ):
                             c_F_ += 1
                             c_M_ -= 1
                         # print(c_F_, c_M_, list(itertools.chain(G[i + offset:n], G[:(i + offset + arc_size) % n])),
                         #       indices[i + offset:n] + indices[:(i + offset + arc_size) % n])
                     else:
                         if (i + offset) % n <= (i + offset + arc_size) % n:
-
-                            if G[(i + offset) % n - 1] == sens_attr_values[0] and G[(i + offset + arc_size) % n - 1] == \
-                                    sens_attr_values[1]:
+                            if (
+                                G[(i + offset) % n - 1] == sens_attr_values[0]
+                                and G[(i + offset + arc_size) % n - 1]
+                                == sens_attr_values[1]
+                            ):
                                 c_F_ -= 1
                                 c_M_ += 1
-                            if G[(i + offset) % n - 1] == sens_attr_values[1] and G[(i + offset + arc_size) % n - 1] == \
-                                    sens_attr_values[0]:
+                            if (
+                                G[(i + offset) % n - 1] == sens_attr_values[1]
+                                and G[(i + offset + arc_size) % n - 1]
+                                == sens_attr_values[0]
+                            ):
                                 c_F_ += 1
                                 c_M_ -= 1
                             # print(c_F_, c_M_, G[(i + offset) % n:(i + offset + arc_size) % n],
                             #       indices[(i + offset) % n:(i + offset + arc_size) % n])
 
                         else:
-                            if G[(i + offset + arc_size) % n - 1] == sens_attr_values[1] and G[(i + offset) % n - 1] == \
-                                    sens_attr_values[0]:
+                            if (
+                                G[(i + offset + arc_size) % n - 1]
+                                == sens_attr_values[1]
+                                and G[(i + offset) % n - 1] == sens_attr_values[0]
+                            ):
                                 c_F_ += 1
                                 c_M_ -= 1
-                            if G[(i + offset + arc_size) % n - 1] == sens_attr_values[0] and G[(i + offset) % n - 1] == \
-                                    sens_attr_values[1]:
+                            if (
+                                G[(i + offset + arc_size) % n - 1]
+                                == sens_attr_values[0]
+                                and G[(i + offset) % n - 1] == sens_attr_values[1]
+                            ):
                                 c_F_ -= 1
                                 c_M_ += 1
                             # print(c_F_, c_M_,
                             #       list(itertools.chain(G[(i + offset) % n:n], G[:(i + offset + arc_size) % n])),
                             #       indices[(i + offset) % n:n] + indices[:(i + offset + arc_size) % n])
 
-            if c_F_ == int(np.ceil(c_F_total / num_of_buckets)) and c_M_ == int(np.ceil(c_M_total / num_of_buckets)):
+            if c_F_ == int(np.ceil(c_F_total / num_of_buckets)) and c_M_ == int(
+                np.ceil(c_M_total / num_of_buckets)
+            ):
                 break
         if i + offset + arc_size < n:
             if i + offset != 0 and i + offset != size:
@@ -110,8 +151,8 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
                 hash_buckets.extend([j, j])
             # if i + offset == offset:
             #     print(c_F_, c_M_, G[i + offset: i + offset + arc_size], indices[i + offset: i + offset + arc_size])
-            del G[i + offset: i + offset + arc_size]
-            del indices[i + offset: i + offset + arc_size]
+            del G[i + offset : i + offset + arc_size]
+            del indices[i + offset : i + offset + arc_size]
             if n != 0:
                 offset = (offset + i) % n
         else:
@@ -123,21 +164,22 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
                 # if i + offset == offset:
                 #     print(c_F_, c_M_, G[i + offset: n] + G[:(i + offset + arc_size) % n],
                 #           indices[i + offset: n] + indices[:(i + offset + arc_size) % n])
-                del G[i + offset: n], G[:(i + offset + arc_size) % n]
-                del indices[i + offset: n], indices[:(i + offset + arc_size) % n]
+                del G[i + offset : n], G[: (i + offset + arc_size) % n]
+                del indices[i + offset : n], indices[: (i + offset + arc_size) % n]
                 offset = 0
             else:
                 if (i + offset) % n < (i + offset + arc_size) % n:
                     if (i + offset) % n > 0 and (
-                            i + offset) % n != size:  # used to be !=0 changed it to >0, check if ok
+                        i + offset
+                    ) % n != size:  # used to be !=0 changed it to >0, check if ok
                         boundary.append(indices[(i + offset) % n])
                         boundary.append(indices[(i + offset + arc_size) % n])
                         hash_buckets.extend([j, j])
                     # if i + offset == offset:
                     #     print(c_F_, c_M_, G[(i + offset) % n:(i + offset + arc_size) % n],
                     #           indices[(i + offset) % n:(i + offset + arc_size) % n])
-                    del G[(i + offset) % n:(i + offset + arc_size) % n]
-                    del indices[(i + offset) % n:(i + offset + arc_size) % n]
+                    del G[(i + offset) % n : (i + offset + arc_size) % n]
+                    del indices[(i + offset) % n : (i + offset + arc_size) % n]
                     offset = (i + offset) % n
                 else:
                     if (i + offset) % n > 0 and (i + offset) % n != size:
@@ -147,16 +189,26 @@ def necklace_split(path, columns, sens_attr_col, num_of_buckets, ranking=None, t
                     # if i + offset == offset:
                     #     print(c_F_, c_M_, G[(i + offset) % n:n], G[:(i + offset + arc_size) % n],
                     #           indices[(i + offset) % n:n] + indices[:(i + offset + arc_size) % n])
-                    del G[(i + offset) % n:n], G[:(i + offset + arc_size) % n]
-                    del indices[(i + offset) % n:n], indices[:(i + offset + arc_size) % n]
+                    del G[(i + offset) % n : n], G[: (i + offset + arc_size) % n]
+                    del (
+                        indices[(i + offset) % n : n],
+                        indices[: (i + offset + arc_size) % n],
+                    )
                     offset = (i + offset) % n
         n = n - arc_size
         # print('offset', offset)
         # print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     stop = timeit.default_timer()
-    return np.unique(sorted(boundary)), [T[val] for val in np.unique(sorted(boundary), return_index=True)[0]], \
-        [hash_buckets[idx] for idx in np.unique(sorted(boundary), return_index=True)[1]], stop - start
+    return (
+        np.unique(sorted(boundary)),
+        [T[val] for val in np.unique(sorted(boundary), return_index=True)[0]],
+        [
+            hash_buckets[idx]
+            for idx in np.unique(sorted(boundary), return_index=True)[1]
+        ],
+        stop - start,
+    )
 
 
 def query(q, boundary, hash_buckets, theta=None, d=2):

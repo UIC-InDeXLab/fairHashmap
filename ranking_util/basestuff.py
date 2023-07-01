@@ -28,7 +28,7 @@ def read_df(dataframe, columns):
 def score(i, f):
     c = 0
     if len(f) != d:
-        print('Error: Function length should be equal to d')
+        print("Error: Function length should be equal to d")
         return
     for j in range(d):
         c += f[j] * dataset[i, j]

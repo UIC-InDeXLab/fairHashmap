@@ -27,60 +27,95 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
             bucket = []
             for k in range(bucket_size):
                 bucket.append(G[r[j * bucket_size + k]])
-            bucket_distribution.append([bucket.count(sens_attr) / bucket_size for sens_attr in sens_attr_values])
+            bucket_distribution.append(
+                [
+                    bucket.count(sens_attr) / bucket_size
+                    for sens_attr in sens_attr_values
+                ]
+            )
             for val in sens_attr_values:
                 if val in collision_count.keys():
-                    collision_count[val] += comb(bucket.count(val), len(sens_attr_values))
+                    collision_count[val] += comb(
+                        bucket.count(val), len(sens_attr_values)
+                    )
                 else:
-                    collision_count[val] = comb(bucket.count(val), len(sens_attr_values))
+                    collision_count[val] = comb(
+                        bucket.count(val), len(sens_attr_values)
+                    )
         for val in sens_attr_values:
             if val in collision_prob.keys():
                 collision_prob[val].append(
-                    collision_count[val] / comb(G.count(val), len(sens_attr_values)))
+                    collision_count[val] / comb(G.count(val), len(sens_attr_values))
+                )
             else:
                 collision_prob[val] = [
-                    collision_count[val] / comb(G.count(val), len(sens_attr_values))]
+                    collision_count[val] / comb(G.count(val), len(sens_attr_values))
+                ]
         distributions.append(bucket_distribution)
 
     disparity = []
     for i in range(len(collision_prob[minority])):
-        max_collision_prob = np.max([collision_prob[val][i] for val in sens_attr_values])
-        min_collision_prob = np.min([collision_prob[val][i] for val in sens_attr_values])
+        max_collision_prob = np.max(
+            [collision_prob[val][i] for val in sens_attr_values]
+        )
+        min_collision_prob = np.min(
+            [collision_prob[val][i] for val in sens_attr_values]
+        )
         disparity.append((max_collision_prob / min_collision_prob) - 1)
 
-    return min(disparity), distributions[disparity.index(min(disparity))], disparity.index(min(disparity))
+    return (
+        min(disparity),
+        distributions[disparity.index(min(disparity))],
+        disparity.index(min(disparity)),
+    )
 
 
+# flag=0: vector and boundary based on sample, flag=1: vector based on sample boundary based on original input
 def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr, flag):
     n = sample.shape[0]
     basestuff.read_df(sample, columns)
+    G = list(sample[sens_attr].values)
     dataset = pd.read_csv(path)
     dataset = dataset[[col for col in columns]]
     dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
     dataset = dataset.to_numpy()
+    bucket_size = n // number_of_buckets
     R = []
     Theta = []
     number_of_cuts = []
-    start = timeit.default_timer()
     TwoD.initialize()
     for i in range(n * n):
-        r, _, theta = TwoD.GetNext()
-        if r is None:
+        r, j, theta = TwoD.GetNext()
+        if r is not None and j != -1:
+            boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
+            idx1 = r[j]
+            idx2 = r[j + 1]
+            if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
+                if not flag:
+                    R.append(r)
+                else:
+                    projection = rank(dataset, [theta], len(columns))
+                    R.append(projection)
+                    # _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
+                    # number_of_cuts.append(len(boundary))
+        elif r is not None and j == -1:
+            boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
+            if not flag:
+                R.append(r)
+            else:
+                projection = rank(dataset, [theta], len(columns))
+                R.append(projection)
+                # _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
+                # number_of_cuts.append(len(boundary))
+        else:
             break
         Theta.append(theta)
-        if not flag:  # vector and boundary based on sample
-            R.append(r)
-        else:  # vector based on sample boundary based on original input
-            projection = rank(dataset, [theta], len(columns))
-            R.append(projection)
-            _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
-            number_of_cuts.append(len(boundary))
-    stop = timeit.default_timer()
     F = find_fair_ranking(path, R, sens_attr, number_of_buckets)
-    print("Fairness:", F[0], F[1], R[F[2]])
-    if flag:
-        print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
-    return Theta[F[2]], stop - start
+    # print("Fairness:", F[0], F[1], R[F[2]])
+    # if flag:
+    # print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
+
+    return Theta[F[2]]
 
 
 def generate_sample(path, d, number_of_buckets, sens_attr):
