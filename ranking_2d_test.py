@@ -3,7 +3,7 @@ import timeit
 import numpy as np
 
 from ranking_2d import find_fair_ranking, query
-from utils import read_file, score, polartoscalar, plot
+from utils import read_file, score, polartoscalar, plot, plot_2
 
 queries = []
 for i in range(1000):
@@ -14,15 +14,29 @@ for i in range(1000):
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas"]
-sensitive_attrs = ["sex", "Sex_Code_Text"]
-columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"]]
+datasets = [
+    # "lawschs",
+    "adult",
+    "compas",
+]
+sensitive_attrs = [
+    # "race",
+    "sex",
+    "Sex_Code_Text",
+]
+columns = [
+    # ["X1", "X2"],
+    ["fnlwgt", "education-num"],
+    ["Person_ID", "Case_ID"],
+]
 d = 2
 flag = 0
 for idx in range(len(datasets)):
     print("=================", datasets[idx], "=================")
     preprocessing_time = []
     query_times = []
+    disparities_after = []
+    disparities_before = []
     for frac in fractions:
         print("=================", "fraction:", frac, "=================")
         path = (
@@ -35,9 +49,18 @@ for idx in range(len(datasets)):
             + ".csv"
         )
         num_of_buckets = 100
-        disparity, distribution, ranking, theta, duration = find_fair_ranking(
-            path, columns[idx], sensitive_attrs[idx], num_of_buckets
-        )
+        (
+            disparity,
+            disparity_original,
+            distribution,
+            ranking,
+            theta,
+            duration,
+        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        print("Disparity:", disparity)
+        print("Original Disparity:", disparity_original)
+        disparities_after.append(disparity)
+        disparities_before.append(disparity_original)
         preprocessing_time.append(duration)
         query_time = []
         dataset = read_file(path, columns[idx])
@@ -52,6 +75,18 @@ for idx in range(len(datasets)):
 
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
+
+    plot_2(
+        "plots/ranking_2d/" + datasets[idx] + "/varying_size_unfairness.png",
+        fractions,
+        disparities_before,
+        disparities_after,
+        fractions,
+        "Varying dataset size (Disparity Before/After)",
+        "Fraction",
+        "Disparity Before/After",
+    )
+
     plot(
         "plots/ranking_2d/" + datasets[idx] + "/varying_size_prep_time.png",
         fractions,
@@ -73,6 +108,8 @@ for idx in range(len(datasets)):
 
     preprocessing_time = []
     query_times = []
+    disparities_after = []
+    disparities_before = []
     for ratio in ratios:
         print("=================", "ratio:", ratio, "=================")
         path = (
@@ -85,10 +122,19 @@ for idx in range(len(datasets)):
             + ".csv"
         )
         num_of_buckets = 100
-        disparity, distribution, ranking, theta, duration = find_fair_ranking(
-            path, columns[idx], sensitive_attrs[idx], num_of_buckets
-        )
+        (
+            disparity,
+            disparity_original,
+            distribution,
+            ranking,
+            theta,
+            duration,
+        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        print("Disparity:", disparity)
+        print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
+        disparities_after.append(disparity)
+        disparities_before.append(disparity_original)
 
         dataset = read_file(path, columns[idx])
         f = polartoscalar([theta], d)
@@ -103,6 +149,16 @@ for idx in range(len(datasets)):
 
     print("Varying minority ratio (prep time):", preprocessing_time)
     print("Varying minority ratio (query time):", query_times)
+    plot_2(
+        "plots/ranking_2d/" + datasets[idx] + "/varying_ratio_unfairness.png",
+        ratios,
+        disparities_before,
+        disparities_after,
+        ratios,
+        "Varying ratio (Disparity Before/After)",
+        "Ratio",
+        "Disparity Before/After",
+    )
     plot(
         "plots/ranking_2d/" + datasets[idx] + "/varying_ratio_prep_time.png",
         ratios,
@@ -124,6 +180,8 @@ for idx in range(len(datasets)):
 
     preprocessing_time = []
     query_times = []
+    disparities_after = []
+    disparities_before = []
     for num_of_buckets in num_of_buckets_list:
         print(
             "=================",
@@ -132,10 +190,19 @@ for idx in range(len(datasets)):
             "=================",
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
-        disparity, distribution, ranking, theta, duration = find_fair_ranking(
-            path, columns[idx], sensitive_attrs[idx], num_of_buckets
-        )
+        (
+            disparity,
+            disparity_original,
+            distribution,
+            ranking,
+            theta,
+            duration,
+        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        print("Disparity:", disparity)
+        print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
+        disparities_after.append(disparity)
+        disparities_before.append(disparity_original)
 
         dataset = read_file(path, columns[idx])
         f = polartoscalar([theta], d)
@@ -150,6 +217,17 @@ for idx in range(len(datasets)):
 
     print("Varying number of buckets (prep time):", preprocessing_time)
     print("Varying number of buckets (query time):", query_times)
+
+    plot_2(
+        "plots/ranking_2d/" + datasets[idx] + "/varying_num_of_buckets_unfairness.png",
+        num_of_buckets_list,
+        disparities_before,
+        disparities_after,
+        num_of_buckets_list,
+        "Varying number of buckets (Disparity Before/After)",
+        "Number of buckets",
+        "Disparity Before/After",
+    )
     plot(
         "plots/ranking_2d/" + datasets[idx] + "/varying_num_of_buckets_prep_time.png",
         num_of_buckets_list,

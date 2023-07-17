@@ -4,14 +4,14 @@ from necklace_split_binary import necklace_split, query
 from utils import plot
 
 queries = []
-for i in range(1000):
+for i in range(10000):
     query_x = np.random.uniform(0, 100000)
     query_y = np.random.uniform(0, 100000)
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
-num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 1000]
+num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800,900, 1000]
 datasets = ["adult",
             "compas"
             ]
@@ -47,7 +47,7 @@ for idx in range(len(datasets)):
         preprocessing_time,
         fractions,
         "Varying dataset size (prep time)",
-        "Fraction",
+        "Fraction(×49000)",
         "Time (sec)",
     )
     plot(
@@ -56,7 +56,7 @@ for idx in range(len(datasets)):
         query_times,
         fractions,
         "Varying dataset size (query time)",
-        "Fraction",
+        "Fraction(×49000)",
         "Time (sec)",
     )
 
@@ -66,7 +66,7 @@ for idx in range(len(datasets)):
         space,
         fractions,
         "Varying dataset size (space)",
-        "Fraction",
+        "Fraction(×49000)",
         "Number of cuts",
     )
 

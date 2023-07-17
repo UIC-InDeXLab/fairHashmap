@@ -149,11 +149,11 @@ for idx in range(len(datasets)):
     preprocessing_time = []
     space = []
     query_times = []
-    for num_of_bucket in num_of_buckets_list:
+    for num_of_buckets in num_of_buckets_list:
         print(
             "=================",
             "number of buckets:",
-            num_of_bucket,
+            num_of_buckets,
             "=================",
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_1.0.csv"

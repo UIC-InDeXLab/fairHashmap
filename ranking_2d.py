@@ -5,8 +5,8 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from scipy.special import comb
-
 from ranking_util import basestuff, TwoD
+from copy import deepcopy
 
 
 def get_all_rankings(path, columns, G, number_of_buckets):
@@ -18,7 +18,8 @@ def get_all_rankings(path, columns, G, number_of_buckets):
     Theta = []
     boundary_indices = []
     for i in range(n * n):
-        r, j, theta = TwoD.GetNext()
+        r_, j, theta = TwoD.GetNext()
+        r = deepcopy(r_)
         if r is not None and j != -1:
             idx1 = r[j]
             idx2 = r[j + 1]
@@ -28,14 +29,12 @@ def get_all_rankings(path, columns, G, number_of_buckets):
                 ]
                 R.append(r)
                 Theta.append(theta)
-
         elif r is not None and j == -1:
             boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
             R.append(r)
             Theta.append(theta)
         else:
             break
-
     return R, Theta
 
 
@@ -47,6 +46,7 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
     bucket_size = n // number_of_buckets
     start = timeit.default_timer()
     R, Theta = get_all_rankings(path, columns, G, number_of_buckets)
+
     sens_attr_values = np.unique(G)
     distributions = []
     collision_prob = {}
@@ -79,6 +79,7 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
 
         distributions.append(bucket_distribution)
 
+    # print(collision_prob)
     disparity = []
     for i in range(len(collision_prob[minority])):
         max_collision_prob = np.max(
@@ -90,8 +91,18 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
         disparity.append((max_collision_prob / min_collision_prob) - 1)
 
     stop = timeit.default_timer()
+
+    max_collision_prob_original = np.max(
+        [collision_prob[sens_attr][0] for sens_attr in sens_attr_values]
+    )
+    min_collision_prob_original = np.min(
+        [collision_prob[sens_attr][0] for sens_attr in sens_attr_values]
+    )
+    disparity_original = (max_collision_prob_original / min_collision_prob_original) - 1
+
     return (
         min(disparity),
+        disparity_original,
         distributions[disparity.index(min(disparity))],
         R[disparity.index(min(disparity))],
         Theta[disparity.index(min(disparity))],

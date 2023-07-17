@@ -211,7 +211,7 @@ def necklace_split(
     )
 
 
-def query(q, boundary, hash_buckets, theta=None, d=2):
+def query(q, boundary, hash_buckets,  theta=None, d=2):
     if theta is not None:
         f = polartoscalar(theta, d)
         q = f[0] * q[0] + f[1] * q[1]

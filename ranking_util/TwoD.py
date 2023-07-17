@@ -2,13 +2,13 @@ import math
 from heapq import *
 from ranking_util import basestuff
 
-n = basestuff.n
-Lp = None  # Lp contains the current ranking
-L = None  # the reverse list that for every tuple i, returns its rank in the current ranking
-sweeper = None  # the sweeper heap (priority queue)
-discoveredAngles = None
-Ui = None
-is_first = True  # a temp variable
+# n = basestuff.n
+# Lp = None  # Lp contains the current ranking
+# L = None  # the reverse list that for every tuple i, returns its rank in the current ranking
+# sweeper = None  # the sweeper heap (priority queue)
+# discoveredAngles = None
+# Ui = None
+# is_first = True  # a temp variable
 
 
 def initialize():

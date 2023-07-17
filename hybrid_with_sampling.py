@@ -1,6 +1,6 @@
 import math
 import timeit
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,7 @@ from scipy.special import comb
 from necklace_split_binary import necklace_split
 from ranking_util import basestuff, TwoD
 from utils import rank
+from copy import deepcopy
 
 
 def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
@@ -63,8 +64,17 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
         )
         disparity.append((max_collision_prob / min_collision_prob) - 1)
 
+    max_collision_prob_original = np.max(
+        [collision_prob[sens_attr][0] for sens_attr in sens_attr_values]
+    )
+    min_collision_prob_original = np.min(
+        [collision_prob[sens_attr][0] for sens_attr in sens_attr_values]
+    )
+    disparity_original = (max_collision_prob_original / min_collision_prob_original) - 1
+    
     return (
         min(disparity),
+        disparity_original,
         distributions[disparity.index(min(disparity))],
         disparity.index(min(disparity)),
     )
@@ -85,7 +95,8 @@ def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr, fl
     number_of_cuts = []
     TwoD.initialize()
     for i in range(n * n):
-        r, j, theta = TwoD.GetNext()
+        r_, j, theta = TwoD.GetNext()
+        r = deepcopy(r_)
         if r is not None and j != -1:
             boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
             idx1 = r[j]
@@ -115,7 +126,7 @@ def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr, fl
     # if flag:
     # print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
 
-    return Theta[F[2]]
+    return Theta[F[3]], F[0],F[1]
 
 
 def generate_sample(path, d, number_of_buckets, sens_attr):
@@ -127,3 +138,8 @@ def generate_sample(path, d, number_of_buckets, sens_attr):
         sample_size = int(np.ceil(12 * number_of_buckets * d * math.log(n) / 50))
         merge.append(df[df[sens_attr] == val].sample(sample_size))
     return pd.concat(merge, axis=0).sample(frac=1.0).reset_index()
+
+
+def generate_sample(path, frac):
+    return pd.read_csv(path).sample(frac=frac)
+

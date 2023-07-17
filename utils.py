@@ -17,7 +17,7 @@ def generate_synthetic_2D_data(file_name, n, minority_count):
         s.append("M")
     random.shuffle(s)
     df["S"] = s
-    df.to_csv("synthetic_data/" + file_name)
+    df.to_csv("synthetic_data/" + file_name, index=False)
 
 
 def generate_sample_of_size(path, dataset, n):
@@ -98,4 +98,17 @@ def plot(path, x_list, y_list, x_ticks, title, x_lable, y_lable):
     plt.title(title)
     plt.xlabel(x_lable)
     plt.ylabel(y_lable)
+    plt.ylim([100, 210])
+    plt.savefig(path, dpi=300)
+
+
+def plot_2(path, x_list, y1_list, y2_list, x_ticks, title, x_lable, y_lable):
+    plt.figure()
+    plt.plot(x_list, y1_list,label="number of cuts in practice")
+    plt.plot(x_list, y2_list,label="upperbound (lemma 2)")
+    plt.xticks(x_ticks)
+    plt.title(title)
+    plt.xlabel(x_lable)
+    plt.ylabel(y_lable)
+    plt.legend(loc="upper left")
     plt.savefig(path, dpi=300)

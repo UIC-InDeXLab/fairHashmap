@@ -1,7 +1,7 @@
 import timeit
 import numpy as np
 from sweep_and_cut import sweep_and_cut, query
-from utils import plot
+from utils import plot, plot_2
 
 queries = []
 for i in range(1000):
@@ -10,6 +10,8 @@ for i in range(1000):
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
+g1 = [4000, 6666, 8000, 10000]
+g2 = [16000, 13334, 12000, 10000]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 datasets = ["adult", "compas"]
@@ -79,8 +81,9 @@ for idx in range(len(datasets)):
 
     preprocessing_time = []
     space = []
+    upperbound = []
     query_times = []
-    for ratio in ratios:
+    for idx2,ratio in enumerate(ratios):
         print("=================", "ratio:", ratio, "=================")
         path = (
             "real_data/"
@@ -97,6 +100,8 @@ for idx in range(len(datasets)):
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
+        ub=2*((g1[idx2]*g2[idx2]/20000)+100)
+        upperbound.append(ub)
         query_time = []
         for q in queries:
             start = timeit.default_timer()
@@ -129,6 +134,17 @@ for idx in range(len(datasets)):
         "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_space.png",
         ratios,
         space,
+        ratios,
+        "Varying ratio (space)",
+        "Ratio",
+        "Number of cuts",
+    )
+
+    plot_2(
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_space_.png",
+        ratios,
+        space,
+        upperbound,
         ratios,
         "Varying ratio (space)",
         "Ratio",

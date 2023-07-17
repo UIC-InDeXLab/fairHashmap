@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from ranking_util import basestuff, TwoD
 from necklace_split_binary import necklace_split
+from copy import deepcopy
 
 
 def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
@@ -18,7 +19,8 @@ def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
     Theta = []
     start = timeit.default_timer()
     for i in range(n * n):
-        r, j, theta = TwoD.GetNext()
+        r_, j, theta = TwoD.GetNext()
+        r = deepcopy(r_)
         if r is not None and j != -1:
             idx1 = r[j]
             idx2 = r[j + 1]
