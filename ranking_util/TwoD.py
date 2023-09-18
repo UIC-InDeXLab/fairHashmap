@@ -2,14 +2,6 @@ import math
 from heapq import *
 from ranking_util import basestuff
 
-# n = basestuff.n
-# Lp = None  # Lp contains the current ranking
-# L = None  # the reverse list that for every tuple i, returns its rank in the current ranking
-# sweeper = None  # the sweeper heap (priority queue)
-# discoveredAngles = None
-# Ui = None
-# is_first = True  # a temp variable
-
 
 def initialize():
     global n, sweeper, Lp, L, is_first, discoveredAngles, Ui
@@ -42,8 +34,10 @@ def GetNext():  # Updates the ranking to the next one
             Lp[j + 1]
         ] -= 1  # decrease the index of the item in position j+1 of the ordered list
         L[i] += 1
+        # print("before",Lp[j],Lp[j + 1])
         Lp[j] = Lp[j + 1]
         Lp[j + 1] = i
+        # print("after",Lp[j],Lp[j + 1])
         if j > 0:
             checkNadd(Lp[j - 1], Lp[j], Ui)
         if j + 2 < basestuff.n:
@@ -75,7 +69,8 @@ def run_first(_Ui=None):
     Ui = [0, math.pi / 2] if _Ui is None else _Ui
     discoveredAngles = set()
     sweeper = []  # the sweeper heap (priority queue)
-    Lp = list(basestuff.rank([Ui[0]], isweight=False))  # Lp contains the ranking
+    # Lp contains the ranking
+    Lp = list(basestuff.rank([Ui[0]], isweight=False))
     L = [
         0 for i in range(basestuff.n)
     ]  # the reverse list that for every tuple i, returns its rank in the current ranking

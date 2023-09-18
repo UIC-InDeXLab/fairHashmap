@@ -90,22 +90,43 @@ def read_file(file, columns):
     dataset = dataset.to_numpy()
     return dataset
 
+def read_df(dataframe, columns):
+    dataset = dataframe[[col for col in columns]]
+    n = dataset.shape[0]
+    d = 2
+    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
+    dataset = dataset.to_numpy()
+    return dataset
 
-def plot(path, x_list, y_list, x_ticks, title, x_lable, y_lable):
+
+def plot(path, x_list, y_list, x_ticks, title, x_lable, y_lable, ylim=None):
     plt.figure()
     plt.plot(x_list, y_list)
     plt.xticks(x_ticks)
     plt.title(title)
     plt.xlabel(x_lable)
     plt.ylabel(y_lable)
-    plt.ylim([100, 210])
+    if ylim is not None:
+        plt.ylim(ylim)
+    plt.savefig(path, dpi=300)
+
+
+def plot_3(path, x_list, y1_list, y2_list, x_ticks, title, x_lable, y_lable):
+    plt.figure()
+    plt.plot(x_list, y1_list,label="number of cuts in practice")
+    plt.plot(x_list, y2_list,label="upperbound (lemma 2)")
+    plt.xticks(x_ticks)
+    plt.title(title)
+    plt.xlabel(x_lable)
+    plt.ylabel(y_lable)
+    plt.legend(loc="upper left")
     plt.savefig(path, dpi=300)
 
 
 def plot_2(path, x_list, y1_list, y2_list, x_ticks, title, x_lable, y_lable):
     plt.figure()
-    plt.plot(x_list, y1_list,label="number of cuts in practice")
-    plt.plot(x_list, y2_list,label="upperbound (lemma 2)")
+    plt.plot(x_list, y1_list,label="input (before)")
+    plt.plot(x_list, y2_list,label="most fair ranking (after)")
     plt.xticks(x_ticks)
     plt.title(title)
     plt.xlabel(x_lable)

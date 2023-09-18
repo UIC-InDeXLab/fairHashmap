@@ -1,15 +1,36 @@
-import math
-import timeit
-from collections import Counter, defaultdict
+from collections import Counter
 
 import numpy as np
 import pandas as pd
 from scipy.special import comb
 
-from necklace_split_binary import necklace_split
 from ranking_util import basestuff, TwoD
 from utils import rank
 from copy import deepcopy
+
+def ranking_sampled(path, sample, columns, number_of_buckets, sens_attr):
+    n = sample.shape[0]
+    basestuff.read_df(sample, columns)
+    dataset = pd.read_csv(path)
+    dataset = dataset[[col for col in columns]]
+    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
+    dataset = dataset.to_numpy()
+    
+    R = []
+    Theta = []
+    TwoD.initialize()
+    for i in range(n * n):
+        r_, _, theta = TwoD.GetNext()
+        r = deepcopy(r_)
+        if r is not None:
+            projection = rank(dataset, [theta], len(columns))
+            R.append(projection)
+            Theta.append(theta)
+        else:
+            break
+    F = find_fair_ranking(path, R, sens_attr, number_of_buckets)
+    # print("Fairness:", F[0], F[1], R[F[2]])
+    return Theta[F[3]], F[0],F[1]
 
 
 def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
@@ -20,6 +41,7 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
     distributions = []
     collision_prob = {}
     for r in R:
+        print(R.index(r),"of",len(R))
         G = [list(df[sens_attr_col].values)[i] for i in r]
         bucket_size = len(r) // number_of_buckets
         bucket_distribution = []
@@ -53,7 +75,6 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
                     collision_count[val] / comb(G.count(val), len(sens_attr_values))
                 ]
         distributions.append(bucket_distribution)
-
     disparity = []
     for i in range(len(collision_prob[minority])):
         max_collision_prob = np.max(
@@ -78,66 +99,6 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
         distributions[disparity.index(min(disparity))],
         disparity.index(min(disparity)),
     )
-
-
-# flag=0: vector and boundary based on sample, flag=1: vector based on sample boundary based on original input
-def hybrid_with_sampling(path, sample, columns, number_of_buckets, sens_attr, flag):
-    n = sample.shape[0]
-    basestuff.read_df(sample, columns)
-    G = list(sample[sens_attr].values)
-    dataset = pd.read_csv(path)
-    dataset = dataset[[col for col in columns]]
-    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
-    dataset = dataset.to_numpy()
-    bucket_size = n // number_of_buckets
-    R = []
-    Theta = []
-    number_of_cuts = []
-    TwoD.initialize()
-    for i in range(n * n):
-        r_, j, theta = TwoD.GetNext()
-        r = deepcopy(r_)
-        if r is not None and j != -1:
-            boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
-            idx1 = r[j]
-            idx2 = r[j + 1]
-            if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
-                if not flag:
-                    R.append(r)
-                else:
-                    projection = rank(dataset, [theta], len(columns))
-                    R.append(projection)
-                    # _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
-                    # number_of_cuts.append(len(boundary))
-        elif r is not None and j == -1:
-            boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
-            if not flag:
-                R.append(r)
-            else:
-                projection = rank(dataset, [theta], len(columns))
-                R.append(projection)
-                # _, boundary, _, _ = necklace_split(path, columns[0], sens_attr, number_of_buckets, projection, theta)
-                # number_of_cuts.append(len(boundary))
-        else:
-            break
-        Theta.append(theta)
-    F = find_fair_ranking(path, R, sens_attr, number_of_buckets)
-    # print("Fairness:", F[0], F[1], R[F[2]])
-    # if flag:
-    # print("Min number of cuts after necklace splitting:", np.min(number_of_cuts))
-
-    return Theta[F[3]], F[0],F[1]
-
-
-def generate_sample(path, d, number_of_buckets, sens_attr):
-    df = pd.read_csv(path)
-    sens_attr_values = np.unique(list(df[sens_attr].values))
-    n = df.shape[0]
-    merge = []
-    for val in sens_attr_values:
-        sample_size = int(np.ceil(12 * number_of_buckets * d * math.log(n) / 50))
-        merge.append(df[df[sens_attr] == val].sample(sample_size))
-    return pd.concat(merge, axis=0).sample(frac=1.0).reset_index()
 
 
 def generate_sample(path, frac):

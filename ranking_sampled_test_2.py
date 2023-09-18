@@ -3,8 +3,10 @@ import timeit
 import numpy as np
 
 from ranking_2d import find_fair_ranking, query
-from utils import read_file, score, polartoscalar, plot, plot_2
+from utils import read_df, score, polartoscalar, plot, plot_2
 from pathlib import Path
+from ranking_sampled import generate_sample
+
 
 queries = []
 for i in range(1000):
@@ -24,7 +26,7 @@ sensitive_attrs = [
     "Sex_Code_Text",
 ]
 columns = [
-    ["fnlwgt", "fnlwgt_"],
+    ["fnlwgt", "education-num"],
     ["Person_ID", "Case_ID"],
 ]
 d = 2
@@ -46,22 +48,23 @@ for idx in range(len(datasets)):
             + str(frac)
             + ".csv"
         )
+        sample = generate_sample(path, 0.1)
         num_of_buckets = 100
         (
             disparity,
             disparity_original,
-            # distribution,
+            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         disparities_after.append(disparity)
         disparities_before.append(disparity_original)
         preprocessing_time.append(duration)
         query_time = []
-        dataset = read_file(path, columns[idx])
+        dataset = read_df(sample, columns[idx])
         f = polartoscalar([theta], d)
         scores = sorted([score(dataset[i], f, d) for i in range(len(dataset))])
         for q in queries:
@@ -74,10 +77,10 @@ for idx in range(len(datasets)):
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
     
-    Path("plots/ranking_2d/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
+    Path("plots/ranking_sampled_2/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
     
     plot_2(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_size_unfairness.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_size_unfairness.png",
         fractions,
         disparities_before,
         disparities_after,
@@ -88,7 +91,7 @@ for idx in range(len(datasets)):
     )
 
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_size_prep_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_size_prep_time.png",
         fractions,
         preprocessing_time,
         fractions,
@@ -97,7 +100,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_size_query_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_size_query_time.png",
         fractions,
         query_times,
         fractions,
@@ -122,22 +125,23 @@ for idx in range(len(datasets)):
             + str(ratio)
             + ".csv"
         )
+        sample = generate_sample(path, 0.1)
         num_of_buckets = 100
         (
             disparity,
             disparity_original,
-            # distribution,
+            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
         disparities_after.append(disparity)
         disparities_before.append(disparity_original)
 
-        dataset = read_file(path, columns[idx])
+        dataset = read_df(sample, columns[idx])
         f = polartoscalar([theta], d)
         scores = sorted([score(dataset[i], f, d) for i in range(len(dataset))])
         query_time = []
@@ -151,7 +155,7 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (prep time):", preprocessing_time)
     print("Varying minority ratio (query time):", query_times)
     plot_2(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_ratio_unfairness.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_ratio_unfairness.png",
         ratios,
         disparities_before,
         disparities_after,
@@ -161,7 +165,7 @@ for idx in range(len(datasets)):
         "Disparity Before/After",
     )
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_ratio_prep_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_ratio_prep_time.png",
         ratios,
         preprocessing_time,
         ratios,
@@ -170,7 +174,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_ratio_query_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_ratio_query_time.png",
         ratios,
         query_times,
         ratios,
@@ -192,21 +196,22 @@ for idx in range(len(datasets)):
             "=================",
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
+        sample = generate_sample(path, 0.1)
         (
             disparity,
             disparity_original,
-            # distribution,
+            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(path, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
         disparities_after.append(disparity)
         disparities_before.append(disparity_original)
 
-        dataset = read_file(path, columns[idx])
+        dataset = read_df(sample, columns[idx])
         f = polartoscalar([theta], d)
         scores = sorted([score(dataset[i], f, d) for i in range(len(dataset))])
         query_time = []
@@ -221,7 +226,7 @@ for idx in range(len(datasets)):
     print("Varying number of buckets (query time):", query_times)
 
     plot_2(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_num_of_buckets_unfairness.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_unfairness.png",
         num_of_buckets_list,
         disparities_before,
         disparities_after,
@@ -231,7 +236,7 @@ for idx in range(len(datasets)):
         "Disparity Before/After",
     )
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_num_of_buckets_prep_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_prep_time.png",
         num_of_buckets_list,
         preprocessing_time,
         num_of_buckets_list,
@@ -240,7 +245,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/ranking_2d/" + datasets[idx] + "/varying_num_of_buckets_query_time.png",
+        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_query_time.png",
         num_of_buckets_list,
         query_times,
         num_of_buckets_list,

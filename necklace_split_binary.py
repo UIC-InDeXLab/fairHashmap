@@ -4,6 +4,8 @@ from bisect import bisect
 
 import numpy as np
 import pandas as pd
+from collections import defaultdict, Counter
+from scipy.special import comb
 
 from utils import polartoscalar
 
@@ -220,3 +222,38 @@ def query(q, boundary, hash_buckets,  theta=None, d=2):
         return hash_buckets[-1]
     else:
         return hash_buckets[idx]
+    
+
+# to be tested
+def predict(path, column,sens_attr_col, boundary, hash_buckets,  theta=None, d=2):
+    test=pd.read_csv(path)
+    dict=defaultdict(list)
+    G=[]*test.shape[0]
+    for _, row in test.iterrows():
+        bucket = query(row[column], boundary, hash_buckets, theta=theta, d=d)
+        dict[bucket] = row[sens_attr_col]
+        G= row[sens_attr_col]
+    return dict,G
+        
+# to be tested
+def eval_fairness(dict,G):
+    sens_attr_values = np.unique(G)
+    collision_prob = defaultdict(int)
+    collision_count=defaultdict(int)
+    
+    for bucket in dict.values():
+        for val in sens_attr_values:
+            collision_count[val] += comb(bucket.count(val), 2)
+                    
+    for val in sens_attr_values:
+        collision_prob[val]=collision_count[val] / comb(G.count(val), 2)
+        
+    max_collision_prob = np.max(
+        [collision_prob[sens_attr] for sens_attr in sens_attr_values]
+    )
+    min_collision_prob = np.min(
+        [collision_prob[sens_attr] for sens_attr in sens_attr_values]
+    )
+    
+    return (max_collision_prob / min_collision_prob) - 1
+        

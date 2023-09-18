@@ -1,15 +1,16 @@
 import timeit
 
 import numpy as np
-from hybrid_with_no_sampling import hybrid_with_no_sampling
+from hybrid import hybrid
 from necklace_split_binary import query
 from utils import plot
+from pathlib import Path
 
 
 queries = []
 for i in range(1000):
-    query_x = np.random.uniform(0, 100000)
-    query_y = np.random.uniform(0, 100000)
+    query_x = np.random.randint(0, 100000)
+    query_y = np.random.randint(0, 100000)
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
@@ -36,7 +37,7 @@ for idx in range(len(datasets)):
             + ".csv"
         )
         num_of_buckets = 100
-        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid_with_no_sampling(
+        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
             path, sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
@@ -51,8 +52,10 @@ for idx in range(len(datasets)):
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
     print("Varying dataset size (space):", space)
+    Path("plots/hybrid/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
+
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_size_prep_time.png",
         fractions,
@@ -63,7 +66,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_size_query_time.png",
         fractions,
@@ -75,7 +78,7 @@ for idx in range(len(datasets)):
     )
 
     plot(
-        "plots/hybrid_with_no_sampling/" + datasets[idx] + "/varying_size_space.png",
+        "plots/hybrid/" + datasets[idx] + "/varying_size_space.png",
         fractions,
         space,
         fractions,
@@ -99,7 +102,7 @@ for idx in range(len(datasets)):
             + ".csv"
         )
         num_of_buckets = 100
-        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid_with_no_sampling(
+        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
             path, sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
@@ -115,7 +118,7 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (query time):", query_times)
     print("Varying minority ratio (space):", space)
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_ratio_prep_time.png",
         ratios,
@@ -126,7 +129,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_ratio_query_time.png",
         ratios,
@@ -137,7 +140,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid_with_no_sampling/" + datasets[idx] + "/varying_ratio_space.png",
+        "plots/hybrid/" + datasets[idx] + "/varying_ratio_space.png",
         ratios,
         space,
         ratios,
@@ -157,7 +160,7 @@ for idx in range(len(datasets)):
             "=================",
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_1.0.csv"
-        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid_with_no_sampling(
+        num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
             path, sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
@@ -173,7 +176,7 @@ for idx in range(len(datasets)):
     print("Varying bucket size (query time):", query_times)
     print("Varying bucket size (space):", space)
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_num_of_buckets_prep_time.png",
         num_of_buckets_list,
@@ -184,7 +187,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_num_of_buckets_query_time.png",
         num_of_buckets_list,
@@ -195,7 +198,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid_with_no_sampling/"
+        "plots/hybrid/"
         + datasets[idx]
         + "/varying_num_of_buckets_space.png",
         num_of_buckets_list,

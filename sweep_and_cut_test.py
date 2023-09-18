@@ -1,12 +1,13 @@
 import timeit
 import numpy as np
 from sweep_and_cut import sweep_and_cut, query
-from utils import plot, plot_2
+from utils import plot, plot_3
+from pathlib import Path
 
 queries = []
 for i in range(1000):
-    query_x = np.random.uniform(0, 100000)
-    query_y = np.random.uniform(0, 100000)
+    query_x = np.random.randint(0, 100000)
+    query_y = np.random.randint(0, 100000)
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
@@ -50,6 +51,8 @@ for idx in range(len(datasets)):
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
     print("Varying dataset size (space):", space)
+    Path("plots/sweep_and_cut/" +
+         datasets[idx]).mkdir(parents=True, exist_ok=True)
     plot(
         "plots/sweep_and_cut/" + datasets[idx] + "/varying_size_prep_time.png",
         fractions,
@@ -60,7 +63,8 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_size_query_time.png",
+        "plots/sweep_and_cut/" +
+        datasets[idx] + "/varying_size_query_time.png",
         fractions,
         query_times,
         fractions,
@@ -83,7 +87,7 @@ for idx in range(len(datasets)):
     space = []
     upperbound = []
     query_times = []
-    for idx2,ratio in enumerate(ratios):
+    for idx2, ratio in enumerate(ratios):
         print("=================", "ratio:", ratio, "=================")
         path = (
             "real_data/"
@@ -100,7 +104,7 @@ for idx in range(len(datasets)):
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
-        ub=2*((g1[idx2]*g2[idx2]/20000)+100)
+        ub = 2*((g1[idx2]*g2[idx2]/20000)+100)
         upperbound.append(ub)
         query_time = []
         for q in queries:
@@ -113,7 +117,8 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (query time):", query_times)
     print("Varying minority ratio (space):", space)
     plot(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_prep_time.png",
+        "plots/sweep_and_cut/" +
+        datasets[idx] + "/varying_ratio_prep_time.png",
         ratios,
         preprocessing_time,
         ratios,
@@ -122,7 +127,8 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_query_time.png",
+        "plots/sweep_and_cut/" +
+        datasets[idx] + "/varying_ratio_query_time.png",
         ratios,
         query_times,
         ratios,
@@ -140,7 +146,7 @@ for idx in range(len(datasets)):
         "Number of cuts",
     )
 
-    plot_2(
+    plot_3(
         "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_space_.png",
         ratios,
         space,
@@ -161,7 +167,8 @@ for idx in range(len(datasets)):
             num_of_buckets,
             "=================",
         )
-        path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
+        path = "real_data/" + datasets[idx] + \
+            "/" + datasets[idx] + "_r_0.25.csv"
         boundary, hash_buckets, duration = sweep_and_cut(
             path, columns[idx], sensitive_attrs[idx], num_of_buckets
         )
@@ -200,7 +207,8 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_num_of_buckets_space.png",
+        "plots/sweep_and_cut/" + datasets[idx] +
+        "/varying_num_of_buckets_space.png",
         num_of_buckets_list,
         space,
         num_of_buckets_list,

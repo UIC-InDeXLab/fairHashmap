@@ -1,6 +1,6 @@
 import timeit
 from bisect import bisect
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 import pandas as pd
@@ -10,74 +10,156 @@ from copy import deepcopy
 
 
 def get_all_rankings(path, columns, G, number_of_buckets):
-    n = pd.read_csv(path).shape[0]
+    if isinstance(path, pd.DataFrame):
+        n = path.shape[0]
+        basestuff.read_df(dataframe=path, columns=columns)
+    else:
+        n = pd.read_csv(path).shape[0]
+        basestuff.read_file(file=path, columns=columns)
+
     bucket_size = n // number_of_buckets
-    basestuff.read_file(file=path, columns=columns)
     TwoD.initialize()
     R = []
     Theta = []
     boundary_indices = []
+    swap_index = []
+    count = 0
     for i in range(n * n):
         r_, j, theta = TwoD.GetNext()
         r = deepcopy(r_)
+        count += 1
         if r is not None and j != -1:
             idx1 = r[j]
             idx2 = r[j + 1]
+            boundary_indices = [
+                r[k * bucket_size] for k in range(1, number_of_buckets)
+            ] #??
             if i == 0 or (idx2 in boundary_indices and G[idx1] != G[idx2]):
-                boundary_indices = [
-                    r[k * bucket_size] for k in range(number_of_buckets)
-                ]
+                # print(boundary_indices)
+                # print("r", j, j+1, idx1, idx2, [r[idx * bucket_size:(
+                #     idx+1) * bucket_size] for idx in range(number_of_buckets)])
+                # print()
+
                 R.append(r)
                 Theta.append(theta)
+                swap_index.append(j)
         elif r is not None and j == -1:
-            boundary_indices = [r[k * bucket_size] for k in range(number_of_buckets)]
+            boundary_indices = [r[k * bucket_size]
+                                for k in range(1, number_of_buckets)]
             R.append(r)
             Theta.append(theta)
+            swap_index.append(j+1)
         else:
             break
-    return R, Theta
+    print(count, len(R))
+    # print(swap_index)
+    print()
+    return R, Theta, swap_index
 
 
 def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
-    G = list(pd.read_csv(path)[sens_attr_col].values)
+    if isinstance(path, pd.DataFrame):
+        G = list(path[sens_attr_col].values)
+    else:
+        G = list(pd.read_csv(path)[sens_attr_col].values)
     freq = Counter(G)
     minority = min(freq, key=freq.get)
     n = len(G)
     bucket_size = n // number_of_buckets
     start = timeit.default_timer()
-    R, Theta = get_all_rankings(path, columns, G, number_of_buckets)
+    R, Theta, swap_index = get_all_rankings(
+        path, columns, G, number_of_buckets)
 
-    sens_attr_values = np.unique(G)
-    distributions = []
-    collision_prob = {}
+    sens_attr_values = {val: idx for idx,
+                        val in enumerate(np.unique(G).tolist())}
+    # distributions = []
+    collision_prob = defaultdict(list)
 
-    for idx in range(len(R)):
-        bucket_distribution = []
-        collision_count = {}
+    first = R[0]
+    bucket_distribution = [[0 for _ in range(
+        len(sens_attr_values.keys()))] for _ in range(number_of_buckets)]
 
-        for j in range(number_of_buckets):
-            bucket = []
-            for k in range(bucket_size):
-                bucket.append(G[R[idx][j * bucket_size + k]])
-            bucket_distribution.append(
-                [
-                    bucket.count(sens_attr) / bucket_size
-                    for sens_attr in sens_attr_values
-                ]
-            )
-            for val in sens_attr_values:
-                if val in collision_count.keys():
-                    collision_count[val] += comb(bucket.count(val), 2)
-                else:
-                    collision_count[val] = comb(bucket.count(val), 2)
+    collision_count = defaultdict(int)
 
-        for val in sens_attr_values:
-            if val in collision_prob.keys():
-                collision_prob[val].append(collision_count[val] / comb(G.count(val), 2))
-            else:
-                collision_prob[val] = [collision_count[val] / comb(G.count(val), 2)]
+    for i in range(number_of_buckets):
+        bucket = []
+        for j in range(bucket_size):
+            bucket.append(G[first[i * bucket_size + j]])
+        for key, val in sens_attr_values.items():
+            bucket_distribution[i][val] = bucket.count(key)
+            collision_count[key
+                            ] += comb(bucket_distribution[i][val], 2)
+    for key in sens_attr_values.keys():
+        collision_prob[key].append(
+            collision_count[key] / comb(G.count(key), 2))
 
-        distributions.append(bucket_distribution)
+    # print("first", [first[i * bucket_size:(i+1) * bucket_size]
+    #       for i in range(number_of_buckets)])
+    # print(bucket_distribution)
+    # print()
+    for i in range(1, len(R)):
+        j = swap_index[i]
+        g_left = G[R[i][j+1]]
+        g_right = G[R[i][j]]
+        bucket_left = j//bucket_size
+        bucket_right = bucket_left+1
+        # print("R", j, j+1, R[i][j], R[i][j+1], [R[i][idx * bucket_size:(idx+1) * bucket_size]
+        #       for idx in range(number_of_buckets)])
+        # print(g_left, g_right, bucket_left, bucket_right)
+        # print(bucket_distribution[bucket_left])
+        # print(bucket_distribution[bucket_right])
+        # print()
+
+        collision_count[g_right] -= comb(bucket_distribution[bucket_left]
+                                         [sens_attr_values[g_right]], 2)
+        collision_count[g_left] -= comb(bucket_distribution[bucket_left]
+                                        [sens_attr_values[g_left]], 2)
+        collision_count[g_right] -= comb(bucket_distribution[bucket_right]
+                                         [sens_attr_values[g_right]], 2)
+        collision_count[g_left] -= comb(bucket_distribution[bucket_right]
+                                        [sens_attr_values[g_left]], 2)
+
+
+        bucket_distribution[bucket_left][sens_attr_values[g_right]] += 1
+        bucket_distribution[bucket_left][sens_attr_values[g_left]] -= 1
+        bucket_distribution[bucket_right][sens_attr_values[g_right]] -= 1
+        bucket_distribution[bucket_right][sens_attr_values[g_left]] += 1
+
+        collision_count[g_right] += comb(bucket_distribution[bucket_left]
+                                         [sens_attr_values[g_right]], 2)
+        collision_count[g_left] += comb(bucket_distribution[bucket_left]
+                                        [sens_attr_values[g_left]], 2)
+        collision_count[g_right] += comb(bucket_distribution[bucket_right]
+                                         [sens_attr_values[g_right]], 2)
+        collision_count[g_left] += comb(bucket_distribution[bucket_right]
+                                        [sens_attr_values[g_left]], 2)
+        
+        for key in sens_attr_values.keys():
+            collision_prob[key].append(
+                collision_count[key] / comb(G.count(key), 2))
+
+    # for idx in range(len(R)):
+    #     bucket_distribution = []
+    #     collision_count = defaultdict(int)
+
+    #     for j in range(number_of_buckets):
+    #         bucket = []
+    #         for k in range(bucket_size):
+    #             bucket.append(G[R[idx][j * bucket_size + k]])
+    #         bucket_distribution.append(
+    #             [
+    #                 bucket.count(sens_attr) / bucket_size
+    #                 for sens_attr in sens_attr_values
+    #             ]
+    #         )
+    #         for val in sens_attr_values:
+    #             collision_count[val] += comb(bucket.count(val), 2)
+
+    #     for val in sens_attr_values:
+    #         collision_prob[val].append(
+    #             collision_count[val] / comb(G.count(val), 2))
+
+    #     distributions.append(bucket_distribution)
 
     # print(collision_prob)
     disparity = []
@@ -98,12 +180,13 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
     min_collision_prob_original = np.min(
         [collision_prob[sens_attr][0] for sens_attr in sens_attr_values]
     )
-    disparity_original = (max_collision_prob_original / min_collision_prob_original) - 1
+    disparity_original = (max_collision_prob_original /
+                          min_collision_prob_original) - 1
 
     return (
         min(disparity),
         disparity_original,
-        distributions[disparity.index(min(disparity))],
+        # distributions[disparity.index(min(disparity))],
         R[disparity.index(min(disparity))],
         Theta[disparity.index(min(disparity))],
         stop - start,

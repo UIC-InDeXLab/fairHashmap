@@ -7,7 +7,7 @@ from necklace_split_binary import necklace_split
 from copy import deepcopy
 
 
-def hybrid_with_no_sampling(path, sens_attr, columns, number_of_buckets):
+def hybrid(path, sens_attr, columns, number_of_buckets):
     G = list(pd.read_csv(path)[sens_attr].values)
     n = len(G)
     basestuff.read_file(file=path, columns=columns)
