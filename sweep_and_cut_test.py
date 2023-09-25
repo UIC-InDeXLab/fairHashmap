@@ -3,6 +3,8 @@ import numpy as np
 from sweep_and_cut import sweep_and_cut, query
 from utils import plot, plot_3
 from pathlib import Path
+import pandas as pd
+
 
 queries = []
 for i in range(1000):
@@ -15,9 +17,14 @@ g1 = [4000, 6666, 8000, 10000]
 g2 = [16000, 13334, 12000, 10000]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas"]
-sensitive_attrs = ["sex", "Sex_Code_Text"]
-columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"]]
+datasets = ["adult", "compas", "diabetes", "popsim"]
+sensitive_attrs = ["sex", "Sex_Code_Text", "gender", "race"]
+columns = [
+    ["fnlwgt", "fnlwgt_"],
+    ["Person_ID", "Case_ID"],
+    ["encounter_id", "patient_nbr"],
+    ["lon", "lat"],
+]
 
 for idx in range(len(datasets)):
     print("=================", datasets[idx], "=================")
@@ -35,6 +42,7 @@ for idx in range(len(datasets)):
             + str(frac)
             + ".csv"
         )
+        n = pd.read_csv(path).shape[0]
         num_of_buckets = 100
         boundary, hash_buckets, duration = sweep_and_cut(
             path, columns[idx], sensitive_attrs[idx], num_of_buckets
@@ -51,25 +59,23 @@ for idx in range(len(datasets)):
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
     print("Varying dataset size (space):", space)
-    Path("plots/sweep_and_cut/" +
-         datasets[idx]).mkdir(parents=True, exist_ok=True)
+    Path("plots/sweep_and_cut/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
     plot(
         "plots/sweep_and_cut/" + datasets[idx] + "/varying_size_prep_time.png",
         fractions,
         preprocessing_time,
         fractions,
         "Varying dataset size (prep time)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" +
-        datasets[idx] + "/varying_size_query_time.png",
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_size_query_time.png",
         fractions,
         query_times,
         fractions,
         "Varying dataset size (query time)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Time (sec)",
     )
 
@@ -79,7 +85,7 @@ for idx in range(len(datasets)):
         space,
         fractions,
         "Varying dataset size (space)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Number of cuts",
     )
 
@@ -104,8 +110,12 @@ for idx in range(len(datasets)):
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
-        ub = 2*((g1[idx2]*g2[idx2]/20000)+100)
-        upperbound.append(ub)
+        if datasets[idx] in ["adult", "compas", "diabetes"]:
+            data = pd.read_csv(path)
+            g1 = data[sensitive_attrs[idx]].value_counts()["Male"]
+            g2 = data[sensitive_attrs[idx]].value_counts()["Female"]
+            ub = 2 * ((g1 * g2 / data.shape[0]) + num_of_buckets)
+            upperbound.append(ub)
         query_time = []
         for q in queries:
             start = timeit.default_timer()
@@ -117,8 +127,7 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (query time):", query_times)
     print("Varying minority ratio (space):", space)
     plot(
-        "plots/sweep_and_cut/" +
-        datasets[idx] + "/varying_ratio_prep_time.png",
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_prep_time.png",
         ratios,
         preprocessing_time,
         ratios,
@@ -127,8 +136,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" +
-        datasets[idx] + "/varying_ratio_query_time.png",
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_query_time.png",
         ratios,
         query_times,
         ratios,
@@ -147,7 +155,7 @@ for idx in range(len(datasets)):
     )
 
     plot_3(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_space_.png",
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_space_ub.png",
         ratios,
         space,
         upperbound,
@@ -167,8 +175,7 @@ for idx in range(len(datasets)):
             num_of_buckets,
             "=================",
         )
-        path = "real_data/" + datasets[idx] + \
-            "/" + datasets[idx] + "_r_0.25.csv"
+        path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
         boundary, hash_buckets, duration = sweep_and_cut(
             path, columns[idx], sensitive_attrs[idx], num_of_buckets
         )
@@ -207,8 +214,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/sweep_and_cut/" + datasets[idx] +
-        "/varying_num_of_buckets_space.png",
+        "plots/sweep_and_cut/" + datasets[idx] + "/varying_num_of_buckets_space.png",
         num_of_buckets_list,
         space,
         num_of_buckets_list,

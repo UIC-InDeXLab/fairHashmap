@@ -6,6 +6,7 @@ from ranking_sampled import generate_sample, ranking_sampled
 from ranking_2d import query
 from utils import read_file, polartoscalar, score, plot, plot_2
 from pathlib import Path
+import pandas as pd
 
 
 queries = []
@@ -17,9 +18,14 @@ for i in range(1000):
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas"]
-sensitive_attrs = ["sex", "Sex_Code_Text"]
-columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"]]
+datasets = ["adult", "compas", "diabetes" "popsim"]
+sensitive_attrs = ["sex", "Sex_Code_Text", "gender" "race"]
+columns = [
+    ["fnlwgt", "fnlwgt_"],
+    ["Person_ID", "Case_ID"],
+    ["encounter_id", "patient_nbr"],
+    ["lon", "lat"],
+]
 d = 2
 for idx in range(len(datasets)):
     print("=================", datasets[idx], "=================")
@@ -38,6 +44,7 @@ for idx in range(len(datasets)):
             + str(frac)
             + ".csv"
         )
+        n = pd.read_csv(path).shape[0]
         num_of_buckets = 100
         start = timeit.default_timer()
         sample = generate_sample(path, 0.1)
@@ -64,7 +71,7 @@ for idx in range(len(datasets)):
 
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
-    
+
     Path("plots/ranking_sampled_1/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
 
     plot_2(
@@ -74,7 +81,7 @@ for idx in range(len(datasets)):
         disparities_after,
         fractions,
         "Varying dataset size (Disparity)",
-        "Fraction(×49000)",
+        "Fraction(×"+str(n)+")",
         "Disparity",
     )
 
@@ -84,7 +91,7 @@ for idx in range(len(datasets)):
         preprocessing_time,
         fractions,
         "Varying dataset size (prep time)",
-        "Fraction (×49000)",
+        "Fraction(×"+str(n)+")",
         "Time (sec)",
     )
     plot(
@@ -93,7 +100,7 @@ for idx in range(len(datasets)):
         query_times,
         fractions,
         "Varying dataset size (query time)",
-        "Fraction (×49000)",
+        "Fraction(×"+str(n)+")",
         "Time (sec)",
     )
     preprocessing_time = []

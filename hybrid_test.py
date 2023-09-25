@@ -5,6 +5,7 @@ from hybrid import hybrid
 from necklace_split_binary import query
 from utils import plot
 from pathlib import Path
+import pandas as pd
 
 
 queries = []
@@ -16,8 +17,8 @@ for i in range(1000):
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas"]
-sensitive_attrs = ["sex", "Sex_Code_Text"]
+datasets = ["adult", "compas", "diabetes"]
+sensitive_attrs = ["sex", "Sex_Code_Text", "gender"]
 columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"]]
 
 for idx in range(len(datasets)):
@@ -36,6 +37,7 @@ for idx in range(len(datasets)):
             + str(frac)
             + ".csv"
         )
+        n = pd.read_csv(path).shape[0]
         num_of_buckets = 100
         num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
             path, sensitive_attrs[idx], columns[idx], num_of_buckets
@@ -62,7 +64,7 @@ for idx in range(len(datasets)):
         preprocessing_time,
         fractions,
         "Varying dataset size (prep time)",
-        "Fraction",
+        "Fraction(×"+str(n)+")",
         "Time (sec)",
     )
     plot(
@@ -73,7 +75,7 @@ for idx in range(len(datasets)):
         query_times,
         fractions,
         "Varying dataset size (query time)",
-        "Fraction",
+        "Fraction(×"+str(n)+")",
         "Time (sec)",
     )
 
@@ -83,7 +85,7 @@ for idx in range(len(datasets)):
         space,
         fractions,
         "Varying dataset size (space)",
-        "Fraction",
+        "Fraction(×"+str(n)+")",
         "Number of cuts",
     )
 

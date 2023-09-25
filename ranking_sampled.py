@@ -41,7 +41,7 @@ def find_fair_ranking(path, R, sens_attr_col, number_of_buckets):
     distributions = []
     collision_prob = {}
     for r in R:
-        print(R.index(r),"of",len(R))
+        print(R.index(r)," of ",len(R))
         G = [list(df[sens_attr_col].values)[i] for i in r]
         bucket_size = len(r) // number_of_buckets
         bucket_distribution = []

@@ -6,6 +6,7 @@ from ranking_2d import find_fair_ranking, query
 from utils import read_df, score, polartoscalar, plot, plot_2
 from pathlib import Path
 from ranking_sampled import generate_sample
+import pandas as pd
 
 
 queries = []
@@ -14,23 +15,19 @@ for i in range(1000):
     query_y = np.random.randint(0, 100000)
     queries.append([query_x, query_y])
 
+sample_fraction = [0.2, 0.2, 0.1, 0.01]
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = [
-    "adult",
-    "compas",
-]
-sensitive_attrs = [
-    "sex",
-    "Sex_Code_Text",
-]
+datasets = ["adult", "compas", "diabetes", "popsim"]
+sensitive_attrs = ["sex", "Sex_Code_Text", "gender", "race"]
 columns = [
-    ["fnlwgt", "education-num"],
+    ["fnlwgt", "fnlwgt_"],
     ["Person_ID", "Case_ID"],
+    ["encounter_id", "patient_nbr"],
+    ["lon", "lat"],
 ]
 d = 2
-flag = 0
 for idx in range(len(datasets)):
     print("=================", datasets[idx], "=================")
     preprocessing_time = []
@@ -48,16 +45,18 @@ for idx in range(len(datasets)):
             + str(frac)
             + ".csv"
         )
-        sample = generate_sample(path, 0.1)
+        n = pd.read_csv(path).shape[0]
+        sample = generate_sample(path, sample_fraction[idx])
         num_of_buckets = 100
         (
             disparity,
             disparity_original,
-            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(
+            sample, columns[idx], sensitive_attrs[idx], num_of_buckets
+        )
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         disparities_after.append(disparity)
@@ -76,9 +75,9 @@ for idx in range(len(datasets)):
 
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
-    
+
     Path("plots/ranking_sampled_2/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
-    
+
     plot_2(
         "plots/ranking_sampled_2/" + datasets[idx] + "/varying_size_unfairness.png",
         fractions,
@@ -86,7 +85,7 @@ for idx in range(len(datasets)):
         disparities_after,
         fractions,
         "Varying dataset size (Disparity Before/After)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Disparity Before/After",
     )
 
@@ -96,7 +95,7 @@ for idx in range(len(datasets)):
         preprocessing_time,
         fractions,
         "Varying dataset size (prep time)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Time (sec)",
     )
     plot(
@@ -105,9 +104,9 @@ for idx in range(len(datasets)):
         query_times,
         fractions,
         "Varying dataset size (query time)",
-        "Fraction",
+        "Fraction(×" + str(n) + ")",
         "Time (sec)",
-        [5e-7,15e-7]
+        [5e-7, 15e-7],
     )
 
     preprocessing_time = []
@@ -125,16 +124,17 @@ for idx in range(len(datasets)):
             + str(ratio)
             + ".csv"
         )
-        sample = generate_sample(path, 0.1)
+        sample = generate_sample(path, sample_fraction[idx])
         num_of_buckets = 100
         (
             disparity,
             disparity_original,
-            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(
+            sample, columns[idx], sensitive_attrs[idx], num_of_buckets
+        )
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
@@ -181,7 +181,7 @@ for idx in range(len(datasets)):
         "Varying ratio (query time)",
         "Ratio",
         "Time (sec)",
-        [5e-7,15e-7]
+        [5e-7, 15e-7],
     )
 
     preprocessing_time = []
@@ -196,15 +196,16 @@ for idx in range(len(datasets)):
             "=================",
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
-        sample = generate_sample(path, 0.1)
+        sample = generate_sample(path, sample_fraction[idx])
         (
             disparity,
             disparity_original,
-            distribution,
             ranking,
             theta,
             duration,
-        ) = find_fair_ranking(sample, columns[idx], sensitive_attrs[idx], num_of_buckets)
+        ) = find_fair_ranking(
+            sample, columns[idx], sensitive_attrs[idx], num_of_buckets
+        )
         print("Disparity:", disparity)
         print("Original Disparity:", disparity_original)
         preprocessing_time.append(duration)
@@ -226,7 +227,9 @@ for idx in range(len(datasets)):
     print("Varying number of buckets (query time):", query_times)
 
     plot_2(
-        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_unfairness.png",
+        "plots/ranking_sampled_2/"
+        + datasets[idx]
+        + "/varying_num_of_buckets_unfairness.png",
         num_of_buckets_list,
         disparities_before,
         disparities_after,
@@ -236,7 +239,9 @@ for idx in range(len(datasets)):
         "Disparity Before/After",
     )
     plot(
-        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_prep_time.png",
+        "plots/ranking_sampled_2/"
+        + datasets[idx]
+        + "/varying_num_of_buckets_prep_time.png",
         num_of_buckets_list,
         preprocessing_time,
         num_of_buckets_list,
@@ -245,12 +250,14 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/ranking_sampled_2/" + datasets[idx] + "/varying_num_of_buckets_query_time.png",
+        "plots/ranking_sampled_2/"
+        + datasets[idx]
+        + "/varying_num_of_buckets_query_time.png",
         num_of_buckets_list,
         query_times,
         num_of_buckets_list,
         "Varying number of buckets (query time)",
         "Number of buckets",
         "Time (sec)",
-        [5e-7,15e-7]
+        [5e-7, 15e-7],
     )

@@ -11,17 +11,17 @@ def read_file(file, columns):
     dataset = pd.read_csv(file)
     n = dataset.shape[0]
     d = 2
-    dataset = dataset[[col for col in columns]]
-    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
+    dataset = dataset[[col for col in columns]].copy()
+    dataset["idx"] = [float(i) for i in range(n)]
     dataset = dataset.to_numpy()
 
 
 def read_df(dataframe, columns):
     global dataset, n, d
-    dataset = dataframe[[col for col in columns]]
+    dataset = dataframe[[col for col in columns]].copy()
     n = dataset.shape[0]
     d = 2
-    dataset["idx"] = [float(i) for i in range(dataset.shape[0])]
+    dataset["idx"] = [float(i) for i in range(n)]
     dataset = dataset.to_numpy()
 
 
