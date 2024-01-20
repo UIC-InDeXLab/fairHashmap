@@ -165,3 +165,11 @@ plots/
 *.out
 *.pkl
 .vscode
+ranking_sampled_test_1.py
+ranking_sampled_test_2.py
+scratch.py
+hybrid.py
+hybrid_sampled_vector.py
+hybrid_sampled_vector_test.py
+hybrid_test.py
+necklace_split_k_ary.py
