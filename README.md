@@ -21,6 +21,7 @@ The algorithms are implemented in `[algorithm-name].py`. You can familiarize you
 - Sensitive attribute (categorical)
 - Non-sensitive attributes (ordinal real-valued)
 - Number of buckets
+
 The algorithm returns a sorted list of boundaries that specify the boundaries for each hash bucket.
 
 ### Data for reproducing the results:
