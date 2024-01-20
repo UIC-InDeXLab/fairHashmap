@@ -25,7 +25,7 @@ The algorithms are implemented in `[algorithm-name].py`. You can familiarize you
 The algorithm returns a sorted list of boundaries that specify the boundaries for each hash bucket.
 
 ### Data for reproducing the results:
-- The data used in our experiments can be downloaded from here: [Link]([https://drive.google.com/file/d/1WkFX1imNOPXWcHi4L2VPmVW_aYVdYGwL/view?usp=sharing](https://drive.google.com/file/d/1WkFX1imNOPXWcHi4L2VPmVW_aYVdYGwL/view?usp=sharing)) 
+- The data used in our experiments can be downloaded from here: [Link](https://drive.google.com/file/d/1WkFX1imNOPXWcHi4L2VPmVW_aYVdYGwL/view?usp=sharing) 
 
 ### Reproducing the results:
 - Unzip the data folder in the root directory of the project
