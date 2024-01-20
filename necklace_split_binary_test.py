@@ -15,11 +15,11 @@ for i in range(10000):
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas", "diabetes"]
-sensitive_attrs = ["sex", "Sex_Code_Text", "gender"]
-columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"],["encounter_id", "patient_nbr"]]
+datasets = ["adult", "compas_random_id", "diabetes","popsim_binary"]
+sensitive_attrs = ["sex", "Sex_Code_Text", "gender","race"]
+columns = [["fnlwgt", "education-num"], ["ID", "RawScore"],["encounter_id", "patient_nbr"],["lon", "lat"]]
 
-for idx in range(len(datasets)):
+for idx in range(1,2):
     print("=================", datasets[idx], "=================")
     preprocessing_time = []
     space = []

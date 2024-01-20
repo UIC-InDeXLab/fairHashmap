@@ -17,7 +17,6 @@ def hybrid(path, sens_attr, columns, number_of_buckets):
     boundaries = []
     hash_buckets = []
     Theta = []
-    swap_index = []
     start = timeit.default_timer()
     for i in range(n * n):
         r_, j, theta = TwoD.GetNext()
@@ -34,7 +33,6 @@ def hybrid(path, sens_attr, columns, number_of_buckets):
                 hash_buckets.append((F[2]))
                 number_of_cuts.append(len(F[1]))
                 Theta.append(theta)
-                swap_index.append(j)
         elif r is not None and j == -1:
             F = necklace_split(path, columns, sens_attr, number_of_buckets, r, theta)
             boundary_indices = F[0]
@@ -42,7 +40,6 @@ def hybrid(path, sens_attr, columns, number_of_buckets):
             hash_buckets.append((F[2]))
             number_of_cuts.append(len(F[1]))
             Theta.append(theta)
-            swap_index.append(j)
         else:
             break
     stop = timeit.default_timer()
@@ -52,5 +49,4 @@ def hybrid(path, sens_attr, columns, number_of_buckets):
         hash_buckets[np.argmin(number_of_cuts)],
         Theta[np.argmin(number_of_cuts)],
         stop - start,
-        swap_index
     )

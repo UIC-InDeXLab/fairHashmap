@@ -19,11 +19,11 @@ sample_fraction = [0.2, 0.2, 0.1, 0.01]
 ratios = [0.25, 0.5, 0.75, 1.0]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas", "diabetes", "popsim"]
+datasets = ["adult", "compas_random_id", "diabetes", "popsim_binary"]
 sensitive_attrs = ["sex", "Sex_Code_Text", "gender", "race"]
 columns = [
-    ["fnlwgt", "fnlwgt_"],
-    ["Person_ID", "Case_ID"],
+    ["fnlwgt", "education-num"],
+    ["ID", "RawScore"],
     ["encounter_id", "patient_nbr"],
     ["lon", "lat"],
 ]
@@ -75,6 +75,8 @@ for idx in range(len(datasets)):
 
     print("Varying dataset size (prep time):", preprocessing_time)
     print("Varying dataset size (query time):", query_times)
+    print("Disparity Before:",disparities_before)
+    print("Disparity After:",disparities_after)
 
     Path("plots/ranking_sampled_2/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
 
@@ -154,6 +156,8 @@ for idx in range(len(datasets)):
 
     print("Varying minority ratio (prep time):", preprocessing_time)
     print("Varying minority ratio (query time):", query_times)
+    print("Disparity Before:",disparities_before)
+    print("Disparity After:",disparities_after)
     plot_2(
         "plots/ranking_sampled_2/" + datasets[idx] + "/varying_ratio_unfairness.png",
         ratios,
@@ -225,6 +229,8 @@ for idx in range(len(datasets)):
 
     print("Varying number of buckets (prep time):", preprocessing_time)
     print("Varying number of buckets (query time):", query_times)
+    print("Disparity Before:",disparities_before)
+    print("Disparity After:",disparities_after)
 
     plot_2(
         "plots/ranking_sampled_2/"

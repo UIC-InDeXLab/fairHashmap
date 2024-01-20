@@ -17,16 +17,16 @@ g1 = [4000, 6666, 8000, 10000]
 g2 = [16000, 13334, 12000, 10000]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas", "diabetes", "popsim"]
-sensitive_attrs = ["sex", "Sex_Code_Text", "gender", "race"]
+datasets = ["adult", "compas_random_id", "diabetes", "popsim_binary"]
+sensitive_attrs = ["sex", "Ethnic_Code_Text", "gender", "race"]
 columns = [
-    ["fnlwgt", "fnlwgt_"],
-    ["Person_ID", "Case_ID"],
+    ["fnlwgt", "education-num"],
+    ["ID", "RawScore"],
     ["encounter_id", "patient_nbr"],
     ["lon", "lat"],
 ]
 
-for idx in range(len(datasets)):
+for idx in range(1,2):
     print("=================", datasets[idx], "=================")
     preprocessing_time = []
     space = []
@@ -110,12 +110,11 @@ for idx in range(len(datasets)):
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
-        if datasets[idx] in ["adult", "compas", "diabetes"]:
-            data = pd.read_csv(path)
-            g1 = data[sensitive_attrs[idx]].value_counts()["Male"]
-            g2 = data[sensitive_attrs[idx]].value_counts()["Female"]
-            ub = 2 * ((g1 * g2 / data.shape[0]) + num_of_buckets)
-            upperbound.append(ub)
+        data = pd.read_csv(path)
+        # g1 = data[sensitive_attrs[idx]].value_counts()["Male"]
+        # g2 = data[sensitive_attrs[idx]].value_counts()["Female"]
+        # ub = 2 * ((g1 * g2 / data.shape[0]) + num_of_buckets)
+        # upperbound.append(ub)
         query_time = []
         for q in queries:
             start = timeit.default_timer()
@@ -126,6 +125,7 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (prep time):", preprocessing_time)
     print("Varying minority ratio (query time):", query_times)
     print("Varying minority ratio (space):", space)
+    print("Upper Bound",upperbound)
     plot(
         "plots/sweep_and_cut/" + datasets[idx] + "/varying_ratio_prep_time.png",
         ratios,
@@ -165,63 +165,63 @@ for idx in range(len(datasets)):
         "Number of cuts",
     )
 
-    preprocessing_time = []
-    space = []
-    query_times = []
-    for num_of_buckets in num_of_buckets_list:
-        print(
-            "=================",
-            "number of buckets:",
-            num_of_buckets,
-            "=================",
-        )
-        path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
-        boundary, hash_buckets, duration = sweep_and_cut(
-            path, columns[idx], sensitive_attrs[idx], num_of_buckets
-        )
-        preprocessing_time.append(duration)
-        space.append(len(boundary))
-        query_time = []
-        for q in queries:
-            start = timeit.default_timer()
-            query(q[0], boundary, hash_buckets)
-            stop = timeit.default_timer()
-            query_time.append(stop - start)
-        query_times.append(np.mean(query_time))
-    print("Varying bucket size (prep time):", preprocessing_time)
-    print("Varying bucket size (query time):", query_times)
-    print("Varying bucket size (space):", space)
-    plot(
-        "plots/sweep_and_cut/"
-        + datasets[idx]
-        + "/varying_num_of_buckets_prep_time.png",
-        num_of_buckets_list,
-        preprocessing_time,
-        num_of_buckets_list,
-        "Varying number of buckets (prep time)",
-        "Number of buckets",
-        "Time (sec)",
-    )
-    plot(
-        "plots/sweep_and_cut/"
-        + datasets[idx]
-        + "/varying_num_of_buckets_query_time.png",
-        num_of_buckets_list,
-        query_times,
-        num_of_buckets_list,
-        "Varying number of buckets (query time)",
-        "Number of buckets",
-        "Time (sec)",
-    )
-    plot(
-        "plots/sweep_and_cut/" + datasets[idx] + "/varying_num_of_buckets_space.png",
-        num_of_buckets_list,
-        space,
-        num_of_buckets_list,
-        "Varying number of buckets (space)",
-        "Number of buckets",
-        "Number of cuts",
-    )
+    # preprocessing_time = []
+    # space = []
+    # query_times = []
+    # for num_of_buckets in num_of_buckets_list:
+    #     print(
+    #         "=================",
+    #         "number of buckets:",
+    #         num_of_buckets,
+    #         "=================",
+    #     )
+    #     path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_0.25.csv"
+    #     boundary, hash_buckets, duration = sweep_and_cut(
+    #         path, columns[idx], sensitive_attrs[idx], num_of_buckets
+    #     )
+    #     preprocessing_time.append(duration)
+    #     space.append(len(boundary))
+    #     query_time = []
+    #     for q in queries:
+    #         start = timeit.default_timer()
+    #         query(q[0], boundary, hash_buckets)
+    #         stop = timeit.default_timer()
+    #         query_time.append(stop - start)
+    #     query_times.append(np.mean(query_time))
+    # print("Varying bucket size (prep time):", preprocessing_time)
+    # print("Varying bucket size (query time):", query_times)
+    # print("Varying bucket size (space):", space)
+    # plot(
+    #     "plots/sweep_and_cut/"
+    #     + datasets[idx]
+    #     + "/varying_num_of_buckets_prep_time.png",
+    #     num_of_buckets_list,
+    #     preprocessing_time,
+    #     num_of_buckets_list,
+    #     "Varying number of buckets (prep time)",
+    #     "Number of buckets",
+    #     "Time (sec)",
+    # )
+    # plot(
+    #     "plots/sweep_and_cut/"
+    #     + datasets[idx]
+    #     + "/varying_num_of_buckets_query_time.png",
+    #     num_of_buckets_list,
+    #     query_times,
+    #     num_of_buckets_list,
+    #     "Varying number of buckets (query time)",
+    #     "Number of buckets",
+    #     "Time (sec)",
+    # )
+    # plot(
+    #     "plots/sweep_and_cut/" + datasets[idx] + "/varying_num_of_buckets_space.png",
+    #     num_of_buckets_list,
+    #     space,
+    #     num_of_buckets_list,
+    #     "Varying number of buckets (space)",
+    #     "Number of buckets",
+    #     "Number of cuts",
+    # )
 print(
     "###############################################################################################################"
 )

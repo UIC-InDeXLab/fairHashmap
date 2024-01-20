@@ -6,6 +6,7 @@ from ranking_util import basestuff
 def initialize():
     global n, sweeper, Lp, L, is_first, discoveredAngles, Ui
     n = basestuff.n
+    print(n)
     Lp = None  # Lp contains the current ranking
     L = None  # the reverse list that for every tuple i, returns its rank in the current ranking
     sweeper = None  # the sweeper heap (priority queue)

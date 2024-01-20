@@ -1,7 +1,7 @@
 import timeit
 
 import numpy as np
-from hybrid import hybrid
+from hybrid_sampled_vector import hybrid
 from necklace_split_binary import query
 from utils import plot
 from pathlib import Path
@@ -15,12 +15,17 @@ for i in range(1000):
     queries.append([query_x, query_y])
 
 ratios = [0.25, 0.5, 0.75, 1.0]
+n_vectors=[10,10,10,10]
 fractions = [0.2, 0.4, 0.6, 0.8, 1.0]
 num_of_buckets_list = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-datasets = ["adult", "compas", "diabetes","popsim_binary"]
+datasets = ["adult", "compas_random_id", "diabetes", "popsim_binary"]
 sensitive_attrs = ["sex", "Sex_Code_Text", "gender","race"]
-columns = [["fnlwgt", "education-num"], ["Person_ID", "Case_ID"], ["encounter_id", "patient_nbr"],["lon", "lat"]]
-
+columns = [
+    ["fnlwgt", "education-num"],
+    ["ID", "RawScore"],
+    ["encounter_id", "patient_nbr"],
+    ["lon", "lat"],
+]
 for idx in range(len(datasets)):
     print("=================", datasets[idx], "=================")
     preprocessing_time = []
@@ -40,7 +45,7 @@ for idx in range(len(datasets)):
         n = pd.read_csv(path).shape[0]
         num_of_buckets = 100
         num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
-            path, sensitive_attrs[idx], columns[idx], num_of_buckets
+            path, n_vectors[idx], sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
@@ -57,7 +62,7 @@ for idx in range(len(datasets)):
     Path("plots/hybrid/" + datasets[idx]).mkdir(parents=True, exist_ok=True)
 
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_size_prep_time.png",
         fractions,
@@ -68,7 +73,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_size_query_time.png",
         fractions,
@@ -80,7 +85,7 @@ for idx in range(len(datasets)):
     )
 
     plot(
-        "plots/hybrid/" + datasets[idx] + "/varying_size_space.png",
+        "plots/hybrid_sampled_vector/" + datasets[idx] + "/varying_size_space.png",
         fractions,
         space,
         fractions,
@@ -105,7 +110,7 @@ for idx in range(len(datasets)):
         )
         num_of_buckets = 100
         num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
-            path, sensitive_attrs[idx], columns[idx], num_of_buckets
+            path, n_vectors[idx], sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
@@ -120,7 +125,7 @@ for idx in range(len(datasets)):
     print("Varying minority ratio (query time):", query_times)
     print("Varying minority ratio (space):", space)
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_ratio_prep_time.png",
         ratios,
@@ -131,7 +136,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_ratio_query_time.png",
         ratios,
@@ -142,7 +147,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid/" + datasets[idx] + "/varying_ratio_space.png",
+        "plots/hybrid_sampled_vector/" + datasets[idx] + "/varying_ratio_space.png",
         ratios,
         space,
         ratios,
@@ -163,7 +168,7 @@ for idx in range(len(datasets)):
         )
         path = "real_data/" + datasets[idx] + "/" + datasets[idx] + "_r_1.0.csv"
         num_of_cuts, boundary, hash_buckets, theta, duration = hybrid(
-            path, sensitive_attrs[idx], columns[idx], num_of_buckets
+            path, n_vectors[idx], sensitive_attrs[idx], columns[idx], num_of_buckets
         )
         preprocessing_time.append(duration)
         space.append(len(boundary))
@@ -178,7 +183,7 @@ for idx in range(len(datasets)):
     print("Varying bucket size (query time):", query_times)
     print("Varying bucket size (space):", space)
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_num_of_buckets_prep_time.png",
         num_of_buckets_list,
@@ -189,7 +194,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_num_of_buckets_query_time.png",
         num_of_buckets_list,
@@ -200,7 +205,7 @@ for idx in range(len(datasets)):
         "Time (sec)",
     )
     plot(
-        "plots/hybrid/"
+        "plots/hybrid_sampled_vector/"
         + datasets[idx]
         + "/varying_num_of_buckets_space.png",
         num_of_buckets_list,

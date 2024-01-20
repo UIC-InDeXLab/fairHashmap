@@ -24,7 +24,7 @@ def get_all_rankings(path, columns, G, number_of_buckets):
     boundary_indices = [k * bucket_size for k in range(1, number_of_buckets)]
     swap_index = []
     count = 0
-    for i in range(n * n):
+    for i in range(n*n):
         r_, j, theta = TwoD.GetNext()
         r = deepcopy(r_)
         count += 1
@@ -68,13 +68,13 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
         [0 for _ in range(len(sens_attr_values.keys()))]
         for _ in range(number_of_buckets)
     ]
-
+    
     collision_count = defaultdict(int)
 
     for i in range(number_of_buckets):
         bucket = []
         for j in range(bucket_size):
-            bucket.append(G[first[i * bucket_size + j]])
+            bucket.append(G[first[i * bucket_size + j]]) 
         for key, val in sens_attr_values.items():
             bucket_distribution[i][val] = bucket.count(key)
             collision_count[key] += comb(bucket_distribution[i][val], 2)
@@ -132,6 +132,7 @@ def find_fair_ranking(path, columns, sens_attr_col, number_of_buckets):
         for key in sens_attr_values.keys():
             collision_prob[key].append(collision_count[key] / comb(G.count(key), 2))
 
+    print(collision_count)
     disparity = []
     for i in range(len(collision_prob[minority])):
         max_collision_prob = np.max(

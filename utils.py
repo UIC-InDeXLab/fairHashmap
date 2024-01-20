@@ -59,6 +59,7 @@ def score(t, f, d):
         return
     for j in range(d):
         c += f[j] * t[j]
+    
     return c
 
 

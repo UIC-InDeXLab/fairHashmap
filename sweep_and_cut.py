@@ -2,6 +2,7 @@ import timeit
 
 import numpy as np
 import pandas as pd
+from collections import defaultdict, Counter
 from bisect import bisect
 
 
@@ -44,3 +45,46 @@ def query(q, boundary, hash_buckets):
         return hash_buckets[-1]
     else:
         return hash_buckets[idx]
+
+def fit_predict_eval_sweep(path_train, path_test, column,sens_attr_col,num_of_buckets):
+    boundary, hash_buckets,_=sweep_and_cut(path_test,column,sens_attr_col,num_of_buckets)
+    test=pd.read_csv(path_train)
+    dict=defaultdict(list)
+    G = list(test[sens_attr_col].values)
+    n = len(G)
+    freq = Counter(G)
+    sens_attr_values = np.unique(G)
+    
+    for _, row in test.iterrows():
+        bucket = query(row[column[0]], boundary, hash_buckets)
+        dict[bucket].append(row[sens_attr_col])         
+        
+    collision_prob_single = defaultdict(int)
+    collision_prob_pairwise = defaultdict(int)
+    collision_prob=0
+    
+    for bucket in dict.values():
+        collision_prob += (len(bucket)/n)**2 
+        for val in sens_attr_values:
+            collision_prob_single[val] += (bucket.count(val)/freq[val])*(len(bucket)/n)
+            collision_prob_pairwise[val] += (bucket.count(val)/freq[val])**2
+    
+    max_collision_prob_single = np.max(
+        [collision_prob_single[sens_attr] for sens_attr in sens_attr_values]
+    )
+    min_collision_prob_single = np.min(
+        [collision_prob_single[sens_attr] for sens_attr in sens_attr_values]
+    )
+    single_fairness= (max_collision_prob_single / (min_collision_prob_single)) - 1
+            
+    max_collision_prob_pairwise = np.max(
+        [collision_prob_pairwise[sens_attr] for sens_attr in sens_attr_values]
+    )
+    min_collision_prob_pairwise = np.min(
+        [collision_prob_pairwise[sens_attr] for sens_attr in sens_attr_values]
+    )
+    
+    pairwise_fairness= (max_collision_prob_pairwise / (min_collision_prob_pairwise)) - 1
+    
+    return collision_prob, single_fairness, pairwise_fairness
+    # return collision_prob, collision_prob_single, collision_prob_pairwise
